@@ -12,7 +12,6 @@
 * @ignore
 */
 define('IN_PHPBB', true);
-//define('IN_INSTALL', true);
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './../';
 $phpEx = substr(strrchr(__FILE__, '.'), 1);
 include($phpbb_root_path . 'common.' . $phpEx);
@@ -37,7 +36,7 @@ if (!$auth->acl_get('a_bbcode'))
 * Setup configuration values
 */
 $config_defaults = array(
-	'latex_method'				=> 'mimetex',
+	'latex_method'				=> 'urltex',
 	'latex_mimetex_location'	=> 'http://mitaub.sourceforge.net/cgi-bin/mimetex.cgi',
 	'latex_images_path'			=> 'images/latex',
 );
