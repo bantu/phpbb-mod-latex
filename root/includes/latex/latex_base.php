@@ -18,56 +18,72 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-class phpbb_latex_bbcode
+abstract class phpbb_latex_bbcode
 {
-	protected $bbcode_tpl;		// The BBcode template
-	protected $images_path;		// The path where images are stored/cached.
+	/**
+	* LaTeX text/formular
+	*
+	* @var	string
+	*/
+	public $text;
 
 	/**
-	* Constructor
+	* Hash of $text
+	*
+	* @var	string
 	*/
-	function __construct()
-	{
-		global $config, $phpbb_root_path;
+	protected $hash;
 
-		// Setup images/cache path.
-		if (!isset($config['latex_images_path']))
-		{
-			trigger_error('LATEX_BBCODE_NOT_INSTALLED');
-		}
+	/**
+	* Parsed string after second pass
+	*
+	* @var	string
+	*/
+	protected $parsed_data;
 
-		$this->images_path = $phpbb_root_path . $config['latex_images_path'];
+	/**
+	* Relative location to the generated latex image
+	*
+	* @var	string
+	*/
+	protected $image_location;
 
-		if (!is_writable($this->images_path))
-		{
-			trigger_error('LATEX_BBCODE_IMAGES_PATH NOT_WRITABLE');
-		}
+	/**
+	* The file extension of our image
+	*
+	* @var	string
+	*/
+	protected $image_extension;
 
-		// Setup BBcode template
-		$this->bbcode_tpl = '<img src="$1" alt="$2" />';
-	}
+	/**
+	* The path where images are stored/cached
+	*
+	* @var	string
+	*/
+	protected $image_store_path;
 
 	/**
 	* Returns an instance of the bbcode method object
+	*
+	* @return	object		latex bbcode parser object
 	*/
 	static function get_instance()
 	{
-		global $config, $phpbb_root_path, $user;
+		global $config, $phpbb_root_path, $phpEx, $user;
 
 		// Setup language here ...
-		$user->add_lang('mods/latex/common');
+		//$user->add_lang('mods/latex/common');
 
 		if (!isset($config['latex_method']))
 		{
-			// This is a fatal error.
-			trigger_error('No latex method specified. It seems like you did not run the installer yet.');
+			trigger_error('LATEX_NOT_INSTALLED');
 		}
 
-		$file = $phpbb_root_path . 'includes/latex/lasex_' . $config['latex_method'] . '.' . $phpEx;
+		$file = $phpbb_root_path . 'includes/latex/latex_' . $config['latex_method'] . '.' . $phpEx;
 
 		if (!file_exists($file))
 		{
-			trigger_error('LATEX_BBCODE_METHOD_NOT_INSTALLED');
+			trigger_error('LATEX_METHOD_NOT_INSTALLED');
 		}
 
 		$class = __CLASS__ . '_' . $config['latex_method'];
@@ -80,36 +96,117 @@ class phpbb_latex_bbcode
 		return new $class();
 	}
 
-	//function clear_cache / purge cache
-
 	/**
-	* Second parse latex bbcode
+	* Second pass for latex bbcode
+	*
+	* @param	string $text	text
+	* @return	string			output after second pass
 	*/
 	static function second_pass($text)
 	{
-		$parser = self::get_instance();
-		
-		
-		$img = latex_text_to_image($text);
-		//$tpl = $this->bbcode_tpl('latex');
-		$tpl = self::bbcode_tpl();
+		static $parser = null;
 
-		$search = array('$2', '$1');
-		$replace = array($text, $img);
+		if (is_null($parser))
+		{
+			$parser = self::get_instance();
+		}
 
-		return str_replace($search, $replace, $tpl);
+		$parser->text = $text;
+		$parser->parse();
+
+		unset($parser->text);
+
+		return $parser->parsed_data;
 	}
 
 	/**
-	* Hash function latex text is hashed with
+	* Hash function for latex text
 	*
-	* @var $text	string		text input
-	*
-	* @return	string			md5 hash
+	* @param	string $text	text
+	* @return	string			hash
 	*/
 	static function hash($text)
 	{
 		return md5($text);
+	}
+
+	/**
+	* Constructor
+	*/
+	function __construct()
+	{
+		$this->setup_store_path();
+	}
+
+	/**
+	* Main function
+	*/
+	abstract function parse();
+
+	/**
+	* The BBcode template and replacements
+	*/
+	function apply_bbcode_template()
+	{
+		$tpl = '<img src="$1" alt="$2" style="vertical-align: middle;" />';
+
+		$search = array('$1', '$2');
+		$replace = array($this->image_location, $this->text);
+
+		$this->parsed_data = str_replace($search, $replace, $tpl);
+	}
+
+	/**
+	* Setup local image location
+	*/
+	abstract function setup_image_location();
+
+	/**
+	* Setup image storage path
+	*/
+	function setup_store_path()
+	{
+		global $config, $phpbb_root_path;
+
+		if (!isset($config['latex_images_path']))
+		{
+			trigger_error('LATEX_NOT_INSTALLED');
+		}
+
+		$path = $phpbb_root_path . $config['latex_images_path'];
+
+		if (!is_writable($path))
+		{
+			trigger_error('LATEX_IMAGES_PATH NOT_WRITABLE');
+		}
+
+		$this->image_store_path = $path;
+	}
+
+	/**
+	* Delete all $this->image_extension files in $this->images_path
+	*/
+	function purge_cache()
+	{
+		$handle = opendir($this->image_store_path);
+
+		while (($entry = readdir($handle)) !== false)
+		{
+			$file = $this->image_store_path . '/' . $entry;
+
+			// Files only. Ignore hidden files.
+			if (!is_file($file) || strpos($entry, '.') === 0)
+			{
+				continue;
+			}
+
+			if (substr($entry, -strlen($this->image_extension)) == $this->image_extension)
+			{
+				unlink($file);
+			}
+		}
+
+		closedir($handle);
 	}
 }
 

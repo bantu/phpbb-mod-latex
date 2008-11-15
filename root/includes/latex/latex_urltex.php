@@ -6,7 +6,7 @@
 * @copyright (c) 2008 Andreas Fischer (bantu@phpbb.com)
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
-* LaTeX BBcode for phpBB 3.0.x using remote 
+* LaTeX BBcode for phpBB 3.0.x using remote service
 *
 * This is the cheapest and easiest way to get LaTeX integrated into your forums.
 *	The latex formula will get sent to a remote host hosting a mimetext or mathtex (prefered) installation.
@@ -28,66 +28,82 @@ if (!defined('IN_PHPBB'))
 
 class phpbb_latex_bbcode_urltex extends phpbb_latex_bbcode
 {
-	private $extension = 'gif';
+	/**
+	* The extension appended to downloaded image files
+	*
+	* @var	string
+	*/
+	protected $image_extension = 'gif';
 
 	/**
-	* Primitive method to download a file from a specified url.
+	* Remote location to get images from
 	*
-	* @var $source_url		string		source url
-	* @var $destination		string		filename of local file
-	*
-	* @return	void
+	* @var	string
 	*/
-	static function download_file($source_url, $destination)
-	{
-		$fp = fopen($destination, 'w');
-		fwrite($fp, file_get_contents($source_url));
-		fclose($fp);
+	protected $remote_location;
 
-		print_r(get_headers($source_url));
+	/**
+	* Constructor
+	*/
+	function __construct()
+	{
+		parent::__construct();
+
+		$this->setup_remote_location();
 	}
 
 	/**
-	* @return mixed		false if error, else relative url string
+	* Main function
 	*/
-	function latex_text_to_image($text)
+	function parse()
 	{
-		global $phpbb_root_path, $config;
+		$this->hash = self::hash($this->text);
 
-		$method = $config['latex_method'];
+		$this->setup_image_location();
 
-		$extension = latex_method_to_extension($method);
-		if ($extension === false)
+		if (!file_exists($this->image_location))
 		{
-			return false;
+			$this->download_image();
 		}
 
-		$hash = latex_hash($text);
+		$this->apply_bbcode_template();
+	}
 
-		$store_path	= $phpbb_root_path . $config['latex_images_path'];
-		$local_file	= $store_path . '/' . $hash . '.' . $extension;
+	/**
+	* Primitive method to download a file
+	*/
+	function download_image()
+	{
+		$url = $this->remote_location . '?' . rawurlencode($this->text);
 
-		if (file_exists($local_file))
+		$fp = fopen($this->image_location, 'w');
+		fwrite($fp, file_get_contents($url));
+		fclose($fp);
+
+		//print_r(get_headers($url));
+	}
+
+	/**
+	* Setup remote parser location
+	*/
+	function setup_remote_location()
+	{
+		global $config;
+
+		if (empty($config['latex_mimetex_location']))
 		{
-			return $local_file;
+			trigger_error('LATEX_REMOTE_LOCATION_UNSPECIFIED');
 		}
 
-		// The image does not exist yet, we need to create it or get it ...
-		if ($method == 'mimetex')
-		{
-			// Check if mimetex location is an url.
-			$url_info	= parse_url($config['latex_mimetex_location']);
-			$url_valid	= (isset($url_info['scheme']) && $url_info['scheme'] == 'http') ? true : false;
+		$this->remote_location = $config['latex_mimetex_location'];
+	}
 
-			if ($url_valid)
-			{
-				$source_url	= $config['latex_mimetex_location'] . '?' . rawurlencode($text);
-
-				latex_get_file($source_url, $local_file);
-			}
-		}
-
-		return $local_file;
+	/**
+	* Setup local image location
+	*/
+	function setup_image_location()
+	{
+		$this->image_location = $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 }
 
