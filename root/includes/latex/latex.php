@@ -46,13 +46,6 @@ abstract class phpbb_latex_bbcode
 	public $parsed_data;
 
 	/**
-	* Relative location to the generated latex image
-	*
-	* @var	string
-	*/
-	protected $image_location;
-
-	/**
 	* The file extension of our image
 	*
 	* @var	string
@@ -67,6 +60,13 @@ abstract class phpbb_latex_bbcode
 	protected $image_store_path;
 
 	/**
+	* Supported formats
+	*
+	* @var	array
+	*/
+	protected $supported_formats;
+
+	/**
 	* Returns an instance of the bbcode method object
 	*
 	* @return	object		latex bbcode parser object
@@ -75,7 +75,7 @@ abstract class phpbb_latex_bbcode
 	{
 		global $config, $phpbb_root_path, $phpEx, $user;
 
-		//set_config('latex_method', 'remote_mathtex');
+		set_config('latex_method', 'remote');
 
 		// Setup language here ...
 		//$user->add_lang('mods/latex/common');
@@ -142,7 +142,6 @@ abstract class phpbb_latex_bbcode
 	function __construct()
 	{
 		$this->setup_store_path();
-		$this->setup_image_location();
 	}
 
 	/**
@@ -158,7 +157,7 @@ abstract class phpbb_latex_bbcode
 		$tpl = '<img src="$1" alt="$2" style="vertical-align: middle;" />';
 
 		$search = array('$1', '$2');
-		$replace = array($this->image_location, $this->text);
+		$replace = array($this->get_image_location(), $this->text);
 
 		$this->parsed_data = str_replace($search, $replace, $tpl);
 	}
@@ -186,11 +185,11 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Setup local image location
+	* Get local image location
 	*/
-	function setup_image_location()
+	function get_image_location()
 	{
-		$this->image_location = $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
+		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 
 	/**

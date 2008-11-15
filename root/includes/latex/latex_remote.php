@@ -26,7 +26,7 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-if (!class_exists('phpbb_latex_bbcode_remote'))
+if (!class_exists('phpbb_latex_bbcode'))
 {
 	include($phpbb_root_path . 'includes/latex/latex.' . $phpEx);
 }
@@ -34,18 +34,31 @@ if (!class_exists('phpbb_latex_bbcode_remote'))
 class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 {
 	/**
-	* Array of public service servers
+	* Array of public service servers as per
+	* http://www.forkosh.dreamhost.com/source_mathtex.html
 	*
 	* @var	array
 	*/
-	public $services;
+	protected $services = array(
+		// MathTex
+		'http://www.forkosh.dreamhost.com/mathtex.cgi',
+		'http://www.cyberroadie.org/cgi-bin/mathtex.cgi',
+		'http://www.problem-solving.be/cgi-bin/mathtex.cgi',
+
+		// MimeTex
+		'http://mitaub.sourceforge.net/cgi-bin/mimetex.cgi',
+		'http://www.forkosh.dreamhost.com/mimetex.cgi',
+	);
 
 	/**
-	* Additional custom server
+	* Supported formats
 	*
-	* @var	mixed	string or array
+	* @var	array
 	*/
-	public $custom_service;
+	protected $supported_formats = array(
+		'image/gif' => 'gif',
+		'image/png' => 'png',
+	);
 
 	/**
 	* Main function
@@ -54,9 +67,20 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	{
 		$this->hash = self::hash($this->text);
 
-		$this->setup_image_location();
+		$file_exists = false;
+		foreach ($this->supported_formats as $extension)
+		{
+			$this->image_extension = $extension;
 
-		if (!file_exists($this->image_location))
+			if (file_exists($this->get_image_location()))
+			{
+				$file_exists = true;
+
+				break;
+			}
+		}
+
+		if (!$file_exists)
 		{
 			$this->download_image();
 		}
@@ -66,59 +90,38 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 	/**
 	* Download images from remote service
+	*
+	* @return	bool		false on error, true on success
 	*/
 	function download_image()
 	{
-		static $services;
-
-		if (!is_array($services))
+		foreach ($this->services as $service)
 		{
-			$services = $this->get_remote_services();
-		}
-
-		foreach ($services as $service)
-		{
-			if (file_exists($this->image_location))
-			{
-				break;
-			}
-
 			$url = $service . '?' . rawurlencode($this->text);
+			$file = file_get_contents($url);
+			$headers = get_headers($url, 1);
 
-			self::download($url, $this->image_location);
-		}
-	}
-
-	/**
-	* Primitive method to download a file
-	*/
-	static function download($from, $to)
-	{
-		$fp = fopen($to, 'w');
-		fwrite($fp, file_get_contents($from));
-		fclose($fp);
-	}
-
-	/**
-	* Get remote services
-	*/
-	function get_remote_services()
-	{
-		$services = $this->services;
-
-		if (!empty($this->custom_service))
-		{
-			$custom_service = $this->custom_service;
-
-			if (!is_array($custom_service))
+			if (empty($headers['Content-Type']))
 			{
-				$custom_service = array($custom_service);
+				continue;
 			}
 
-			$services = array_merge($custom_service, $services);
+			$mime = $headers['Content-Type'];
+			if (!isset($this->supported_formats[$mime]))
+			{
+				continue;
+			}
+
+			$this->image_extension = $this->supported_formats[$mime];
+
+			$fp = fopen($this->get_image_location(), 'w');
+			fwrite($fp, $file);
+			fclose($fp);
+
+			return true;
 		}
 
-		return $services;
+		return false;
 	}
 }
 
