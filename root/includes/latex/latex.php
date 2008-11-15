@@ -209,9 +209,12 @@ abstract class phpbb_latex_bbcode
 				continue;
 			}
 
-			if (substr($entry, -strlen($this->image_extension)) == $this->image_extension)
+			foreach ($this->supported_formats as $extension)
 			{
-				unlink($file);
+				if (substr($entry, -strlen($extension)) == $extension)
+				{
+					unlink($file);
+				}
 			}
 		}
 
