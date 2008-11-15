@@ -71,7 +71,7 @@ abstract class phpbb_latex_bbcode
 	*
 	* @return	object		latex bbcode parser object
 	*/
-	static function get_instance()
+	public static function get_instance()
 	{
 		global $config, $phpbb_root_path, $phpEx, $user;
 
@@ -108,7 +108,7 @@ abstract class phpbb_latex_bbcode
 	* @param	string $text	text
 	* @return	string			output after second pass
 	*/
-	static function second_pass($text)
+	public static function second_pass($text)
 	{
 		static $parser = null;
 
@@ -131,7 +131,7 @@ abstract class phpbb_latex_bbcode
 	* @param	string $text	text
 	* @return	string			hash
 	*/
-	static function hash($text)
+	public static function hash($text)
 	{
 		return md5($text);
 	}
@@ -139,7 +139,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Constructor
 	*/
-	function __construct()
+	public function __construct()
 	{
 		$this->setup_store_path();
 	}
@@ -147,12 +147,12 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Main function
 	*/
-	abstract function parse();
+	abstract public function parse();
 
 	/**
 	* The BBcode template and replacements
 	*/
-	function apply_bbcode_template()
+	protected function apply_bbcode_template()
 	{
 		$tpl = '<img src="$1" alt="$2" style="vertical-align: middle;" />';
 
@@ -165,7 +165,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Setup image storage path
 	*/
-	function setup_store_path()
+	protected function setup_store_path()
 	{
 		global $config, $phpbb_root_path;
 
@@ -187,7 +187,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Get local image location
 	*/
-	function get_image_location()
+	protected function get_image_location()
 	{
 		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
@@ -195,7 +195,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Delete all $this->image_extension files in $this->images_path
 	*/
-	function purge_cache()
+	public function purge_cache()
 	{
 		$handle = opendir($this->image_store_path);
 

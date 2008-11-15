@@ -63,7 +63,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	/**
 	* Main function
 	*/
-	function parse()
+	public function parse()
 	{
 		$this->hash = self::hash($this->text);
 
@@ -93,7 +93,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	*
 	* @return	bool		false on error, true on success
 	*/
-	function download_image()
+	protected function download_image()
 	{
 		foreach ($this->services as $service)
 		{
