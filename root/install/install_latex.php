@@ -36,9 +36,10 @@ if (!$auth->acl_get('a_bbcode'))
 * Setup configuration values
 */
 $config_defaults = array(
-	'latex_method'				=> 'urltex',
-	'latex_mimetex_location'	=> 'http://mitaub.sourceforge.net/cgi-bin/mimetex.cgi',
-	'latex_images_path'			=> 'images/latex',
+	'latex_method'					=> 'remote_mathtex',
+	'latex_remote_mathtex_service'	=> '',
+	'latex_remote_mimetex_service'	=> '',
+	'latex_images_path'				=> 'images/latex',
 );
 
 foreach ($config_defaults as $config_value => $default)

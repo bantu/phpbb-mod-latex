@@ -8,6 +8,10 @@
 *
 * LaTeX BBcode for phpBB 3.0.x
 *
+* General Requirements:
+*	PHP 5
+*	phpBB 3.0.x
+*
 */
 
 /**
@@ -39,7 +43,7 @@ abstract class phpbb_latex_bbcode
 	*
 	* @var	string
 	*/
-	protected $parsed_data;
+	public $parsed_data;
 
 	/**
 	* Relative location to the generated latex image
@@ -70,6 +74,8 @@ abstract class phpbb_latex_bbcode
 	static function get_instance()
 	{
 		global $config, $phpbb_root_path, $phpEx, $user;
+
+		//set_config('latex_method', 'remote_mathtex');
 
 		// Setup language here ...
 		//$user->add_lang('mods/latex/common');
@@ -136,6 +142,7 @@ abstract class phpbb_latex_bbcode
 	function __construct()
 	{
 		$this->setup_store_path();
+		$this->setup_image_location();
 	}
 
 	/**
@@ -157,11 +164,6 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Setup local image location
-	*/
-	abstract function setup_image_location();
-
-	/**
 	* Setup image storage path
 	*/
 	function setup_store_path()
@@ -181,6 +183,14 @@ abstract class phpbb_latex_bbcode
 		}
 
 		$this->image_store_path = $path;
+	}
+
+	/**
+	* Setup local image location
+	*/
+	function setup_image_location()
+	{
+		$this->image_location = $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 
 	/**
