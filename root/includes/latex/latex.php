@@ -39,21 +39,21 @@ abstract class phpbb_latex_bbcode
 	protected $hash;
 
 	/**
-	* The file extension of our image
+	* The file extension of the generated image
 	*
 	* @var	string
 	*/
 	protected $image_extension;
 
 	/**
-	* The path where images are stored/cached
+	* The path where images are stored or cached
 	*
 	* @var	string
 	*/
 	protected $image_store_path;
 
 	/**
-	* Supported formats
+	* Array of supported formats
 	*
 	* @var	array
 	*/
@@ -108,7 +108,6 @@ abstract class phpbb_latex_bbcode
 
 		$renderer->text = $text;
 		$renderer->render();
-
 		$result = $renderer->get_result();
 
 		unset($renderer->text);
@@ -138,26 +137,13 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Main render function
 	*/
-	public function render()
-	{
-		$this->hash = self::hash($this->text);
-
-		// Guess/check existing files
-		foreach ($this->supported_formats as $extension)
-		{
-			$this->image_extension = $extension;
-
-			if (file_exists($this->get_image_location()))
-			{
-				// No need to render anything.
-				return false;
-			}
-		}
-	}
+	abstract public function render();
 
 	/**
 	* Builds and returns the final result
 	* Includes the BBcode template
+	*
+	* @return	string
 	*/
 	public function get_result()
 	{
@@ -169,6 +155,8 @@ abstract class phpbb_latex_bbcode
 
 	/**
 	* Get local image location
+	*
+	* @return	string		image location
 	*/
 	protected function get_image_location()
 	{
@@ -176,7 +164,29 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
+	* Guess image location
+	*
+	* @return	bool		true on success
+	*/
+	protected function guess_image_location()
+	{
+		foreach ($this->supported_formats as $extension)
+		{
+			$this->image_extension = $extension;
+
+			if (file_exists($this->get_image_location()))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	* Setup image storage path
+	*
+	* @return	void
 	*/
 	protected function setup_store_path()
 	{
@@ -198,6 +208,8 @@ abstract class phpbb_latex_bbcode
 
 	/**
 	* Delete all $this->image_extension files in $this->images_path
+	*
+	* @return void
 	*/
 	public function purge_cache()
 	{

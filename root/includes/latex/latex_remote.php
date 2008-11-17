@@ -9,9 +9,9 @@
 * LaTeX BBcode for phpBB 3.0.x using remote service
 *
 * This is the cheapest and easiest way to get LaTeX integrated into your forums.
-*	The latex formula will get sent to a remote host hosting a mimetext or mathtex (prefered) installation.
-*	The remote host will render it and return a gif or png image.
-*	That image will be stored on your webspace and will be named by a hash so you can access it later on.
+*	The latex formula will get sent to a remote server hosting a mimetext or mathtex (prefered) installation.
+*	The remote host will render it for us and return a gif or png image.
+*	The returned image will be stored on the webspace.
 *
 * Requirements:
 *	function file_get_contents() enabled
@@ -37,7 +37,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	* Array of public service servers as per
 	* http://www.forkosh.dreamhost.com/source_mathtex.html
 	*
-	* @var	array
+	* @var	array[int][string]
 	*/
 	protected $services = array(
 		// MathTex
@@ -53,7 +53,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	/**
 	* Supported formats
 	*
-	* @var	array
+	* @var	array[string][string]
 	*/
 	protected $supported_formats = array(
 		'image/gif' => 'gif',
@@ -62,13 +62,21 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 	/**
 	* Main render function
+	*
+	* @return	void
 	*/
 	public function render()
 	{
-		if (parent::render() === false)
+		$this->hash = self::hash($this->text);
+
+		if ($this->guess_image_location())
 		{
-			$this->download_image();
+			// No need to do anything.
+			return;
 		}
+
+		// Implicit else. Need to download image.
+		$this->download_image();
 	}
 
 	/**
