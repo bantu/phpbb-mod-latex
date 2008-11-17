@@ -69,7 +69,7 @@ abstract class phpbb_latex_bbcode
 		global $config, $phpbb_root_path, $phpEx, $user;
 
 		// Setup language here ...
-		//$user->add_lang('mods/latex/common');
+		$user->add_lang('mods/latex/common');
 
 		if (!isset($config['latex_method']))
 		{
@@ -190,7 +190,7 @@ abstract class phpbb_latex_bbcode
 		$path = $phpbb_root_path . $config['latex_images_path'];
 		if (!is_writable($path))
 		{
-			trigger_error('LATEX_IMAGES_PATH NOT_WRITABLE');
+			trigger_error('LATEX_IMAGES_PATH_NOT_WRITABLE');
 		}
 
 		$this->image_store_path = $path;
