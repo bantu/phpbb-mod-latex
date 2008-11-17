@@ -40,7 +40,8 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
-	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The LaTeX image path is not writeable.',
+	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The LaTeX images path is not readable.',
+	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The LaTeX images path is not writeable.',
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'The LaTeX method you specified is not installed.',
 	'LATEX_NOT_INSTALLED'				=> 'LaTeX is not properly installed into phpBB.',
 ));

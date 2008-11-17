@@ -131,6 +131,7 @@ abstract class phpbb_latex_bbcode
 	*/
 	public function __construct()
 	{
+		// Setup path for reading.
 		$this->setup_store_path();
 	}
 
@@ -188,22 +189,32 @@ abstract class phpbb_latex_bbcode
 	*
 	* @return	void
 	*/
-	protected function setup_store_path()
+	protected function setup_store_path($check_writeable = false)
 	{
-		global $config, $phpbb_root_path;
-
-		if (!isset($config['latex_images_path']))
+		if (empty($this->image_store_path))
 		{
-			trigger_error('LATEX_NOT_INSTALLED');
+			global $config, $phpbb_root_path;
+
+			if (!isset($config['latex_images_path']))
+			{
+				// No path specified
+				trigger_error('LATEX_NOT_INSTALLED');
+			}
+
+			$this->image_store_path = $phpbb_root_path . $config['latex_images_path'];
+			if (!is_readable($this->image_store_path))
+			{
+				// Path specified but not readable by php/webserver
+				trigger_error('LATEX_IMAGES_PATH_NOT_READABLE');
+			}
 		}
 
-		$path = $phpbb_root_path . $config['latex_images_path'];
-		if (!is_writable($path))
+		// Path specified and readable
+		if ($check_writeable && !is_writable($this->image_store_path))
 		{
+			// Path not writable
 			trigger_error('LATEX_IMAGES_PATH_NOT_WRITABLE');
 		}
-
-		$this->image_store_path = $path;
 	}
 
 	/**

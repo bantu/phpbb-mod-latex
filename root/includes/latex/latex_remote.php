@@ -74,8 +74,12 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 			// No need to do anything.
 			return;
 		}
-
 		// Implicit else. Need to download image.
+
+		// Setup path for writing.
+		$this->setup_store_path(true);
+
+		// Download image.
 		$this->download_image();
 	}
 
