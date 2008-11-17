@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* common [English]
+* common [Deutsch - Du]
 *
 * @package phpbb_latex_bbcode
 * @version $Id$
@@ -40,10 +40,10 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
-	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The specified path for LaTeX images is not readable.',
-	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The specified path for LaTeX images is not writeable.',
-	'LATEX_METHOD_NOT_INSTALLED'		=> 'The specified LaTeX method is not installed or is missing.',
-	'LATEX_NOT_INSTALLED'				=> 'LaTeX BBcode support is not properly installed.',
+	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'Im angegebenen Pfad für LaTeX-Grafiken kann nicht gelesen werden.',
+	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'Der angegebene Pfad für LaTeX-Grafiken ist nicht beschreibbar.',
+	'LATEX_METHOD_NOT_INSTALLED'		=> 'Die konfigurierte LaTeX-Methode ist nicht verfügbar oder nicht installiert.',
+	'LATEX_NOT_INSTALLED'				=> 'LaTeX ist nicht vollständig oder nicht korrekt installiert.',
 ));
 
 ?>
