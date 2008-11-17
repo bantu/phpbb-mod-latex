@@ -4,37 +4,34 @@
 <!-- $Id$ -->
 <mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.1.xsd">
 
-  <header>
+	<header>
+		<license>GNU General Public License v2</license>
+		<title lang="en-gb">LaTeX BBCode</title>
+		<description lang="en-gb">Allows you to use LaTeX in phpBB 3.0.x.</description>
+		<author-notes lang="en-gb"></author-notes>
 
-	<license>GNU General Public License v2</license>
-	<title lang="en-gb">LaTeX BBCode</title>
-	<description lang="en-gb">Allows you to use LaTeX in phpBB 3.0.x.</description>
-	<author-notes lang="en-gb"></author-notes>
+		<author-group>
+			<author>
+				<realname>Andreas Fischer</realname>
+				<email>bantu@phpBB.com</email>
+				<username>bantu</username>
+				<homepage>http://www.bantu-phpbb.de</homepage>
+			</author>
+		</author-group>
 
-	<author-group>
-	  <author>
-		<realname>Andreas Fischer</realname>
-		<email>bantu@phpBB.com</email>
-		<username>bantu</username>
-		<homepage>http://www.bantu-phpbb.de</homepage>
-	  </author>
-	</author-group>
+		<mod-version>1.0.0</mod-version>
 
-	<mod-version>1.0.0</mod-version>
+		<installation>
+			<level>easy</level>
+			<time>180</time>
+			<target-version>3.0.3</target-version>
+		</installation>
+	</header>
 
-	<installation>
-	  <level>easy</level>
-	  <time>180</time>
-	  <target-version>3.0.3</target-version>
-	</installation>
-
-  </header>
-
-  <action-group>
-
-	<copy>
-	  <file from="root/*.*" to="/" />
-	</copy>
+	<action-group>
+		<copy>
+			<file from="root/*.*" to="/" />
+		</copy>
 
 		<open src="includes/bbcode.php">
 			<edit>
@@ -52,7 +49,6 @@ if (!class_exists('phpbb_bbcode_latex'))
 				</action>
 			</edit>
 		</open>
-
-  </action-group>
+	</action-group>
 
 </mod>
