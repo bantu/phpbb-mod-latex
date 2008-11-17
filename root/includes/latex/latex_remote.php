@@ -61,31 +61,14 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	);
 
 	/**
-	* Main function
+	* Main render function
 	*/
-	public function parse()
+	public function render()
 	{
-		$this->hash = self::hash($this->text);
-
-		$file_exists = false;
-		foreach ($this->supported_formats as $extension)
-		{
-			$this->image_extension = $extension;
-
-			if (file_exists($this->get_image_location()))
-			{
-				$file_exists = true;
-
-				break;
-			}
-		}
-
-		if (!$file_exists)
+		if (parent::render() === false)
 		{
 			$this->download_image();
 		}
-
-		$this->apply_bbcode_template();
 	}
 
 	/**

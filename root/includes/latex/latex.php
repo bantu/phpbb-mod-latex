@@ -39,13 +39,6 @@ abstract class phpbb_latex_bbcode
 	protected $hash;
 
 	/**
-	* Parsed string after second pass
-	*
-	* @var	string
-	*/
-	public $parsed_data;
-
-	/**
 	* The file extension of our image
 	*
 	* @var	string
@@ -75,8 +68,6 @@ abstract class phpbb_latex_bbcode
 	{
 		global $config, $phpbb_root_path, $phpEx, $user;
 
-		set_config('latex_method', 'remote');
-
 		// Setup language here ...
 		//$user->add_lang('mods/latex/common');
 
@@ -86,14 +77,12 @@ abstract class phpbb_latex_bbcode
 		}
 
 		$file = $phpbb_root_path . 'includes/latex/latex_' . $config['latex_method'] . '.' . $phpEx;
-
 		if (!file_exists($file))
 		{
 			trigger_error('LATEX_METHOD_NOT_INSTALLED');
 		}
 
 		$class = __CLASS__ . '_' . $config['latex_method'];
-
 		if (!class_exists($class))
 		{
 			include($file);
@@ -110,19 +99,21 @@ abstract class phpbb_latex_bbcode
 	*/
 	public static function second_pass($text)
 	{
-		static $parser = null;
+		static $renderer = null;
 
-		if (is_null($parser))
+		if (is_null($renderer))
 		{
-			$parser = self::get_instance();
+			$renderer = self::get_instance();
 		}
 
-		$parser->text = $text;
-		$parser->parse();
+		$renderer->text = $text;
+		$renderer->render();
 
-		unset($parser->text);
+		$result = $renderer->get_result();
 
-		return $parser->parsed_data;
+		unset($renderer->text);
+
+		return $result;
 	}
 
 	/**
@@ -145,21 +136,43 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Main function
+	* Main render function
 	*/
-	abstract public function parse();
+	public function render()
+	{
+		$this->hash = self::hash($this->text);
+
+		// Guess/check existing files
+		foreach ($this->supported_formats as $extension)
+		{
+			$this->image_extension = $extension;
+
+			if (file_exists($this->get_image_location()))
+			{
+				// No need to render anything.
+				return false;
+			}
+		}
+	}
 
 	/**
-	* The BBcode template and replacements
+	* Builds and returns the final result
+	* Includes the BBcode template
 	*/
-	protected function apply_bbcode_template()
+	public function get_result()
 	{
-		$tpl = '<img src="$1" alt="$2" style="vertical-align: middle;" />';
+		$src = $this->get_image_location();
+		$alt = $this->text;
 
-		$search = array('$1', '$2');
-		$replace = array($this->get_image_location(), $this->text);
+		return '<img src="' . $src . '" alt="' . $alt . '" style="vertical-align: middle;" />';
+	}
 
-		$this->parsed_data = str_replace($search, $replace, $tpl);
+	/**
+	* Get local image location
+	*/
+	protected function get_image_location()
+	{
+		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 
 	/**
@@ -175,21 +188,12 @@ abstract class phpbb_latex_bbcode
 		}
 
 		$path = $phpbb_root_path . $config['latex_images_path'];
-
 		if (!is_writable($path))
 		{
 			trigger_error('LATEX_IMAGES_PATH NOT_WRITABLE');
 		}
 
 		$this->image_store_path = $path;
-	}
-
-	/**
-	* Get local image location
-	*/
-	protected function get_image_location()
-	{
-		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 
 	/**
