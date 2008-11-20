@@ -181,6 +181,7 @@ abstract class phpbb_latex_bbcode
 			}
 		}
 
+		unset($this->image_extension);
 		return false;
 	}
 

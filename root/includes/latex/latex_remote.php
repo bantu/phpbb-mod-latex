@@ -109,7 +109,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 			$this->image_extension = $this->supported_formats[$mime];
 
-			$fp = fopen($this->get_image_location(), 'w');
+			$fp = fopen($this->get_image_location(), 'wb');
 			fwrite($fp, $file);
 			fclose($fp);
 
