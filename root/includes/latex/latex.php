@@ -137,8 +137,18 @@ abstract class phpbb_latex_bbcode
 
 	/**
 	* Main render function
+	*
+	* @return	void
 	*/
 	abstract public function render();
+
+	/**
+	* Methods that tells us whether the current 
+	* php setup supports this latex method or not 
+	*
+	* @return	bool
+	*/
+	abstract public static function is_supported();
 
 	/**
 	* Builds and returns the final result

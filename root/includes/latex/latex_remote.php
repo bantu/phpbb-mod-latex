@@ -14,7 +14,7 @@
 *	The returned image will be stored on the webspace.
 *
 * Requirements:
-*	function file_get_contents() enabled
+*	allow_url_fopen allowed
 *
 */
 
@@ -81,6 +81,31 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 		// Download image.
 		$this->download_image();
+	}
+
+	/**
+	* Methods that tells us whether the current 
+	* php setup supports this latex method or not 
+	*
+	* @return	bool
+	*/
+	public static function is_supported()
+	{
+		if ((@ini_get('allow_url_fopen') != '1' && strtolower(@ini_get('allow_url_fopen')) !== 'on'))
+		{
+			return false;
+		}
+
+		$functions = array('file_get_contents', 'fopen', 'fwrite');
+		foreach ($functions as $function)
+		{
+			if (!function_exists($function) || !is_callable($function))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
