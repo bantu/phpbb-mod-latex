@@ -97,9 +97,13 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public static function is_supported()
 	{
-		if (!function_exists('exec') || !is_callable('exec'))
+		$functions = array('exec', 'fopen', 'fwrite');
+		foreach ($functions as $function)
 		{
-			return false;
+			if (!function_exists($function) || !is_callable($function))
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -112,7 +116,89 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	protected function create_image()
 	{
-		return false;
+		$cwd = getcwd();
+		chdir($this->image_store_path);
+
+		$methods = array(
+			'create_tex'
+			'create_dvi',
+		);
+
+		$status = true;
+		foreach ($methods as $method)
+		{
+			if (!$status)
+			{
+				break;
+			}
+
+			$this->$method();
+		}
+
+		chdir($cwd);
+
+		return $status;
+	}
+
+	/**
+	* Creates temporary tex file
+	*
+	* @return	bool		false on error
+	*/
+	private function create_tex()
+	{
+		// Create .tex file
+		$fp = fopen($this->hash . '.tex', 'wb');
+		$status = fwrite($fp, $this->text);
+		fclose($fp);
+
+		return ($status !== false) true : false;
+	}
+
+	/**
+	* Creates temporary dvi file
+	*
+	* @return	bool		false on error
+	*/
+	private function create_dvi()
+	{
+		if (!file_exists($this->hash . '.tex'))
+		{
+			return false;
+		}
+
+		exec($this->latex_location . ' --interaction=nonstopmode ' . $this->hash . '.tex');
+	}
+
+	/**
+	* Deletes all temporary files in $this->images_path
+	*
+	* @return void
+	*/
+	public function clean_up()
+	{
+		$handle = opendir($this->image_store_path);
+
+		while (($entry = readdir($handle)) !== false)
+		{
+			$file = $this->image_store_path . '/' . $entry;
+
+			// Files only. Ignore hidden files.
+			if (!is_file($file) || strpos($entry, '.') === 0)
+			{
+				continue;
+			}
+
+			foreach (array()) as $extension)
+			{
+				if (substr($entry, -strlen($extension)) == $extension)
+				{
+					unlink($file);
+				}
+			}
+		}
+
+		closedir($handle);
 	}
 }
 

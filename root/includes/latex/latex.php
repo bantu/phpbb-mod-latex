@@ -181,6 +181,8 @@ abstract class phpbb_latex_bbcode
 	*/
 	protected function guess_image_location()
 	{
+		$ext = $this->image_extension;
+
 		foreach ($this->supported_formats as $extension)
 		{
 			$this->image_extension = $extension;
@@ -191,7 +193,8 @@ abstract class phpbb_latex_bbcode
 			}
 		}
 
-		unset($this->image_extension);
+		$this->image_extension = $ext;
+
 		return false;
 	}
 
@@ -229,7 +232,7 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Delete all $this->image_extension files in $this->images_path
+	* Delete all image files in $this->image_store_path
 	*
 	* @return void
 	*/
