@@ -3,7 +3,7 @@
 *
 * @package phpbb_latex_bbcode
 * @version $Id$
-* @copyright (c) 2008 Andreas Fischer (bantu@phpbb.com)
+* @copyright (c) 2008 Andreas Fischer <bantu@phpbb.com>
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
 * LaTeX BBcode for phpBB 3.0.x
