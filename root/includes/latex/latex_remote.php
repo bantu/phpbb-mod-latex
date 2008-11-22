@@ -84,7 +84,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Methods that tells us whether the current 
+	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
 	* @return	bool

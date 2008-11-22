@@ -143,7 +143,7 @@ abstract class phpbb_latex_bbcode
 	abstract public function render();
 
 	/**
-	* Methods that tells us whether the current 
+	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
 	* @return	bool

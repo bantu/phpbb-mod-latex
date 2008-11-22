@@ -13,15 +13,15 @@
 *
 * This is a quick and professional way to get LaTeX integrated into your forums:
 *	Writes the LaTeX formula into a wrapped .tex file
-*	Creates a .dvhi file from the .tex file using latex
+*	Creates a .dvi file from the .tex file using latex
 *	Converts the .dvi file to postscript using dvips
-*	Converts the .ps file to image using imagemagick
+*	Trims and converts the .ps file to image using imagemagick
 *	The generated image will be stored on the webspace.
 *
 * Requirements:
 *	PHP function exec() enabled
 *	LaTeX binaries installed (latex, dvips)
-*	ImageMagick installed
+*	ImageMagick installed (convert, identify)
 *
 */
 
@@ -57,6 +57,16 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	protected $supported_formats = array('gif');
 
 	/**
+	* Constructor
+	*/
+	public function __construct()
+	{
+		$this->image_extension = $this->supported_formats[0];
+
+		parent::__construct();
+	}
+
+	/**
 	* Main render function
 	*
 	* @return	void
@@ -80,23 +90,29 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Methods that tells us whether the current 
+	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
 	* @return	bool
 	*/
 	public static function is_supported()
 	{
-		$functions = array('exec', 'fopen', 'fwrite');
-		foreach ($functions as $function)
+		if (!function_exists('exec') || !is_callable('exec'))
 		{
-			if (!function_exists($function) || !is_callable($function))
-			{
-				return false;
-			}
+			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	* Creates the LaTeX image
+	*
+	* @return	bool		false on error, true on success
+	*/
+	protected function create_image()
+	{
+		return false;
 	}
 }
 
