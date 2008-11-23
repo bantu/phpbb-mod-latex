@@ -122,7 +122,13 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		chdir($cwd);
 
 		// Copy image to images path
-		copy($this->tmp_path . '/' . $this->hash . '.' . $this->image_extension, $this->get_image_location())
+		$src = $this->tmp_path . '/' . $this->hash . '.' . $this->image_extension;
+		$dst = $this->get_image_location());
+
+		if (rename($src, $dst) === false)
+		{
+			copy($src, $dst);
+		}
 
 		// Clean up tmp path
 		$this->clean_tmp_path();
