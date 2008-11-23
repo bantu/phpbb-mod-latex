@@ -45,7 +45,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*
 	* @var	string
 	*/
-	protected $image_extension = 'gif';
+	protected $image_extension = 'png';
 
 	/**
 	* Temporary path where operations are performed
@@ -59,7 +59,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*
 	* @var	int
 	*/
-	protected $fontsize = 10;
+	protected $fontsize = 11;
 
 	/**
 	* Formular density (used by imagemagick)
@@ -122,15 +122,18 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		chdir($cwd);
 
 		// Copy image to images path
-		$src = $this->tmp_path . '/' . $this->hash . '.' . $this->image_extension;
-		$dst = $this->get_image_location());
-
-		if (rename($src, $dst) === false)
+		if ($status)
 		{
-			copy($src, $dst);
+			$src = $this->tmp_path . $this->hash . '.' . $this->image_extension;
+			$dst = $this->get_image_location();
+
+			if (rename($src, $dst) === false)
+			{
+				copy($src, $dst);
+			}
 		}
 
-		// Clean up tmp path
+		// Clean up temp path
 		$this->clean_tmp_path();
 
 		return $status;
@@ -145,13 +148,18 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	{
 		// Write .tex
 		$fp = fopen($this->hash . '.tex', 'wb');
-		$status = fwrite($fp, self::wrap_text($this->text));
+		$status = fwrite($fp, $this->wrap_text($this->text));
 		fclose($fp);
 
 		if (!file_exists($this->hash . '.tex'))
 		{
 			return false;
 		}
+
+		// @DEBUG
+		$this->latex_location = exec('which latex');
+		$this->dvips_location = exec('which dvips');
+		$this->convert_location = exec('which convert');
 
 		// Convert .tex to .dvi
 		exec($this->latex_location . ' --interaction=nonstopmode ' . $this->hash . '.tex');
@@ -170,7 +178,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		}
 
 		// Convert .ps to image
-		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF"' . $this->hash . '.ps ' . $this->hash . '.' . $this->image_extension);
+		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF" ' . $this->hash . '.ps ' . $this->hash . '.' . $this->image_extension);
 
 		if (!file_exists($this->hash . '.' . $this->image_extension))
 		{
@@ -185,7 +193,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*
 	* @return void
 	*/
-	protected static function wrap_text($text) {
+	protected function wrap_text($text) {
 		$out = '';
 
 		$out .= '\documentclass[' . $this->fontsize . "pt]{article}\n";
@@ -195,7 +203,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		$out .= "\usepackage{amssymb}\n";
 		$out .= "\pagestyle{empty}\n";
 		$out .= "\begin{document}\n";
-		$out .= '$' . $text . "$\n";
+		$out .= '$' . htmlspecialchars_decode($text) . "$\n";
 		$out .= "\end{document}\n";
 
 		return $out;
@@ -212,7 +220,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		{
 			global $phpbb_root_path;
 
-			$this->tmp_path = $phpbb_root_path . '/cache';
+			$this->tmp_path = $phpbb_root_path . 'cache/';
 		}
 
 		// Assume phpBB cache folder is writeable

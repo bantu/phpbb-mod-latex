@@ -201,11 +201,11 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Deletes all $this->image_extension files in $this->image_store_path
+	* Deletes all files in $this->image_store_path
 	*
 	* @return void
 	*/
-	public function purge_cache()
+	public function purge_image_cache()
 	{
 		$handle = opendir($this->image_store_path);
 
@@ -219,10 +219,13 @@ abstract class phpbb_latex_bbcode
 				continue;
 			}
 
-			if (substr($entry, -strlen($this->image_extension)) == $this->image_extension)
+			// Skip index file.
+			if (strpos($entry, 'index') === 0)
 			{
-				unlink($file);
+				continue;
 			}
+
+			unlink($file);
 		}
 
 		closedir($handle);
