@@ -69,18 +69,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	protected $density = 120;
 
 	/**
-	* Constructor
-	*/
-	public function __construct()
-	{
-		global $phpbb_root_path;
-
-		$this->tmp_path = $phpbb_root_path . '/cache';
-
-		parent::__construct();
-	}
-
-	/**
 	* Main render function
 	*
 	* @return	void
@@ -89,18 +77,13 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	{
 		$this->hash = self::hash($this->text);
 
-		if ($this->guess_image_location())
+		if (!file_exists($this->get_image_location()))
 		{
-			// No need to do anything.
-			return;
+			$this->setup_tmp_path();
+
+			// Create image.
+			$this->create_image();
 		}
-		// Implicit else. Need to create image.
-
-		// Setup path for writing.
-		$this->setup_store_path(true);
-
-		// Create image.
-		$this->create_image();
 	}
 
 	/**
@@ -111,7 +94,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public static function is_supported()
 	{
-		$functions = array('exec', 'fopen', 'fwrite');
+		$functions = array('exec', 'copy', 'fopen', 'fwrite');
 		foreach ($functions as $function)
 		{
 			if (!function_exists($function) || !is_callable($function))
@@ -133,10 +116,16 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		$cwd = getcwd();
 		chdir($this->tmp_path);
 
+		// Create image in temporary folder
 		$status = $this->create_image_helper();
-		$this->clean_up();
 
 		chdir($cwd);
+
+		// Copy image to images path
+		copy($this->tmp_path . '/' . $this->hash . '.' . $this->image_extension, $this->get_image_location())
+
+		// Clean up tmp path
+		$this->clean_tmp_path();
 
 		return $status;
 	}
@@ -150,7 +139,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	{
 		// Write .tex
 		$fp = fopen($this->hash . '.tex', 'wb');
-		$status = fwrite($fp, wrap_text($this->text));
+		$status = fwrite($fp, self::wrap_text($this->text));
 		fclose($fp);
 
 		if (!file_exists($this->hash . '.tex'))
@@ -175,9 +164,9 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		}
 
 		// Convert .ps to image
-		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF"' . $this->hash . '.ps ' . $this->get_image_location());
+		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF"' . $this->hash . '.ps ' . $this->hash . '.' . $this->image_extension);
 
-		if (!file_exists($this->get_image_location()))
+		if (!file_exists($this->hash . '.' . $this->image_extension))
 		{
 			return false;
 		}
@@ -207,34 +196,38 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Deletes all temporary files in $this->images_path
+	* Setup temporary path
+	*
+	* @return	void
+	*/
+	protected function setup_tmp_path()
+	{
+		if (empty($this->tmp_path))
+		{
+			global $phpbb_root_path;
+
+			$this->tmp_path = $phpbb_root_path . '/cache';
+		}
+
+		// Assume phpBB cache folder is writeable
+	}
+
+	/**
+	* Deletes all temporary files $this->tmp_path
 	*
 	* @return void
 	*/
-	public function clean_up()
+	protected function clean_tmp_path()
 	{
-		$handle = opendir($this->tmp_path);
-
-		while (($entry = readdir($handle)) !== false)
+		foreach (array('tex', 'dvi', 'ps', $this->image_extension, 'log', 'aux') as $ext)
 		{
-			$file = $this->tmp_path . '/' . $entry;
+			$file = $this->tmp_path . '/' . $this->hash . '.' . $ext;
 
-			// Files only. Ignore hidden files.
-			if (!is_file($file) || strpos($entry, '.') === 0)
+			if (file_exists($file))
 			{
-				continue;
-			}
-
-			foreach (array('tex', 'dvi', 'ps', 'log', 'aux')) as $extension)
-			{
-				if (substr($entry, -strlen($extension)) == $extension)
-				{
-					unlink($file);
-				}
+				unlink($file);
 			}
 		}
-
-		closedir($handle);
 	}
 }
 

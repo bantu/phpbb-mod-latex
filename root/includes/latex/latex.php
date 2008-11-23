@@ -53,13 +53,6 @@ abstract class phpbb_latex_bbcode
 	protected $image_store_path;
 
 	/**
-	* Array of supported formats
-	*
-	* @var	array
-	*/
-	protected $supported_formats;
-
-	/**
 	* Returns an instance of the bbcode method object
 	*
 	* @return	object		latex bbcode parser object
@@ -146,7 +139,7 @@ abstract class phpbb_latex_bbcode
 	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
-	* @return	bool
+	* @return	bool		false if unsupported
 	*/
 	abstract public static function is_supported();
 
@@ -172,30 +165,6 @@ abstract class phpbb_latex_bbcode
 	protected function get_image_location()
 	{
 		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
-	}
-
-	/**
-	* Guess image location
-	*
-	* @return	bool		true on success
-	*/
-	protected function guess_image_location()
-	{
-		$ext = $this->image_extension;
-
-		foreach ($this->supported_formats as $extension)
-		{
-			$this->image_extension = $extension;
-
-			if (file_exists($this->get_image_location()))
-			{
-				return true;
-			}
-		}
-
-		$this->image_extension = $ext;
-
-		return false;
 	}
 
 	/**
@@ -232,7 +201,7 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Delete all image files in $this->image_store_path
+	* Deletes all $this->image_extension files in $this->image_store_path
 	*
 	* @return void
 	*/
@@ -250,12 +219,9 @@ abstract class phpbb_latex_bbcode
 				continue;
 			}
 
-			foreach ($this->supported_formats as $extension)
+			if (substr($entry, -strlen($this->image_extension)) == $this->image_extension)
 			{
-				if (substr($entry, -strlen($extension)) == $extension)
-				{
-					unlink($file);
-				}
+				unlink($file);
 			}
 		}
 

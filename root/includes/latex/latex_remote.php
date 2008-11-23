@@ -143,6 +143,61 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 		return false;
 	}
+
+	/**
+	* Guess image location
+	*
+	* @return	bool		true on success
+	*/
+	protected function guess_image_location()
+	{
+		$ext = $this->image_extension;
+
+		foreach ($this->supported_formats as $extension)
+		{
+			$this->image_extension = $extension;
+
+			if (file_exists($this->get_image_location()))
+			{
+				return true;
+			}
+		}
+
+		$this->image_extension = $ext;
+
+		return false;
+	}
+
+	/**
+	* Deletes all image files in $this->image_store_path
+	*
+	* @return void
+	*/
+	public function purge_cache()
+	{
+		$handle = opendir($this->image_store_path);
+
+		while (($entry = readdir($handle)) !== false)
+		{
+			$file = $this->image_store_path . '/' . $entry;
+
+			// Files only. Ignore hidden files.
+			if (!is_file($file) || strpos($entry, '.') === 0)
+			{
+				continue;
+			}
+
+			foreach ($this->supported_formats as $extension)
+			{
+				if (substr($entry, -strlen($extension)) == $extension)
+				{
+					unlink($file);
+				}
+			}
+		}
+
+		closedir($handle);
+	}
 }
 
 ?>
