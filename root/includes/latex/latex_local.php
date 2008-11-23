@@ -41,27 +41,41 @@ if (!class_exists('phpbb_latex_bbcode'))
 class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 {
 	/**
-	* Array of commands that need to be executed to create image
+	* The file extension of the generated image
 	*
-	* @var	array[string][string]
+	* @var	string
 	*/
-	protected $commands = array(
-		
-	);
+	protected $image_extension = 'gif';
 
 	/**
-	* Supported formats
+	* Temporary path where operations are performed
 	*
-	* @var	array[int][string]
+	* @var	string
 	*/
-	protected $supported_formats = array('gif');
+	protected $tmp_path;
+
+	/**
+	* Font size (used by latex)
+	*
+	* @var	int
+	*/
+	protected $fontsize = 10;
+
+	/**
+	* Formular density (used by imagemagick)
+	*
+	* @var	int
+	*/
+	protected $density = 120;
 
 	/**
 	* Constructor
 	*/
 	public function __construct()
 	{
-		$this->image_extension = $this->supported_formats[0];
+		global $phpbb_root_path;
+
+		$this->tmp_path = $phpbb_root_path . '/cache';
 
 		parent::__construct();
 	}
@@ -117,23 +131,10 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	protected function create_image()
 	{
 		$cwd = getcwd();
-		chdir($this->image_store_path);
+		chdir($this->tmp_path);
 
-		$methods = array(
-			'create_tex'
-			'create_dvi',
-		);
-
-		$status = true;
-		foreach ($methods as $method)
-		{
-			if (!$status)
-			{
-				break;
-			}
-
-			$this->$method();
-		}
+		$status = $this->create_image_helper();
+		$this->clean_up();
 
 		chdir($cwd);
 
@@ -141,33 +142,68 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Creates temporary tex file
+	* Helper method for $this->create_image()
 	*
 	* @return	bool		false on error
 	*/
-	private function create_tex()
+	private function create_image_helper()
 	{
-		// Create .tex file
+		// Write .tex
 		$fp = fopen($this->hash . '.tex', 'wb');
-		$status = fwrite($fp, $this->text);
+		$status = fwrite($fp, wrap_text($this->text));
 		fclose($fp);
 
-		return ($status !== false) true : false;
-	}
-
-	/**
-	* Creates temporary dvi file
-	*
-	* @return	bool		false on error
-	*/
-	private function create_dvi()
-	{
 		if (!file_exists($this->hash . '.tex'))
 		{
 			return false;
 		}
 
+		// Convert .tex to .dvi
 		exec($this->latex_location . ' --interaction=nonstopmode ' . $this->hash . '.tex');
+
+		if (!file_exists($this->hash . '.dvi'))
+		{
+			return false;
+		}
+
+		// Convert .dvi to .ps
+		exec($this->dvips_location . ' -E ' . $this->hash . '.dvi' . ' -o ' . $this->hash . '.ps');
+
+		if (!file_exists($this->hash . '.ps'))
+		{
+			return false;
+		}
+
+		// Convert .ps to image
+		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF"' . $this->hash . '.ps ' . $this->get_image_location());
+
+		if (!file_exists($this->get_image_location()))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	* Deletes all temporary files in $this->images_path
+	*
+	* @return void
+	*/
+	protected static function wrap_text($text) {
+		$out = '';
+
+		$out .= '\documentclass[' . $this->fontsize . "pt]{article}\n";
+		$out .= "\usepackage[latin1]{inputenc}\n";
+		$out .= "\usepackage{amsmath}\n";
+		$out .= "\usepackage{amsfonts}\n";
+		$out .= "\usepackage{amssymb}\n";
+		$out .= "\pagestyle{empty}\n";
+		$out .= "\begin{document}\n";
+		$out .= '$' . $text . "$\n";
+		$out .= "\end{document}\n";
+
+		return $out;
 	}
 
 	/**
@@ -177,11 +213,11 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public function clean_up()
 	{
-		$handle = opendir($this->image_store_path);
+		$handle = opendir($this->tmp_path);
 
 		while (($entry = readdir($handle)) !== false)
 		{
-			$file = $this->image_store_path . '/' . $entry;
+			$file = $this->tmp_path . '/' . $entry;
 
 			// Files only. Ignore hidden files.
 			if (!is_file($file) || strpos($entry, '.') === 0)
@@ -189,7 +225,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 				continue;
 			}
 
-			foreach (array()) as $extension)
+			foreach (array('tex', 'dvi', 'ps', 'log', 'aux')) as $extension)
 			{
 				if (substr($entry, -strlen($extension)) == $extension)
 				{
