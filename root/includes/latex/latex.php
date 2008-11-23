@@ -9,8 +9,7 @@
 * LaTeX BBcode for phpBB 3.0.x
 *
 * General Requirements:
-*	PHP 5
-*	phpBB 3.0.x
+*	PHP 5 or higher
 *
 */
 

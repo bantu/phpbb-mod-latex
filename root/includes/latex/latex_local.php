@@ -18,7 +18,7 @@
 *	Trims and converts the .ps file to image using imagemagick
 *	The generated image will be stored on the webspace.
 *
-* Requirements:
+* Additional Requirements:
 *	PHP function exec() enabled
 *	LaTeX binaries installed (latex, dvips)
 *	ImageMagick installed (convert, identify)
@@ -79,6 +79,8 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 
 		if (!file_exists($this->get_image_location()))
 		{
+			// Setup image storage path and temporary path
+			$this->setup_store_path(true);
 			$this->setup_tmp_path();
 
 			// Create image.

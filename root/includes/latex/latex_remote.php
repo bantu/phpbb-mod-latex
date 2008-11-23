@@ -13,8 +13,8 @@
 *	The remote host will render it for us and return a gif or png image.
 *	The returned image will be stored on the webspace.
 *
-* Requirements:
-*	allow_url_fopen allowed
+* Additional Requirements:
+*	allow_url_fopen on
 *
 */
 
