@@ -24,11 +24,18 @@ if (!defined('IN_PHPBB'))
 abstract class phpbb_latex_bbcode
 {
 	/**
+	* Hash method used to hash text
+	*
+	* @var	string
+	*/
+	protected static $hash_method = 'md5';
+
+	/**
 	* LaTeX text/formular
 	*
 	* @var	string
 	*/
-	public $text;
+	protected $text;
 
 	/**
 	* Hash of $text
@@ -45,7 +52,7 @@ abstract class phpbb_latex_bbcode
 	protected $image_extension;
 
 	/**
-	* The path where images are stored or cached
+	* The path where images are stored/cached
 	*
 	* @var	string
 	*/
@@ -65,13 +72,13 @@ abstract class phpbb_latex_bbcode
 
 		if (!isset($config['latex_method']))
 		{
-			trigger_error('LATEX_NOT_INSTALLED');
+			trigger_error('LATEX_NOT_INSTALLED', E_USER_ERROR);
 		}
 
 		$file = $phpbb_root_path . 'includes/latex/latex_' . $config['latex_method'] . '.' . $phpEx;
 		if (!file_exists($file))
 		{
-			trigger_error('LATEX_METHOD_NOT_INSTALLED');
+			trigger_error('LATEX_METHOD_NOT_INSTALLED', E_USER_ERROR);
 		}
 
 		$class = __CLASS__ . '_' . $config['latex_method'];
@@ -98,24 +105,10 @@ abstract class phpbb_latex_bbcode
 			$renderer = self::get_instance();
 		}
 
-		$renderer->text = $text;
+		$renderer->set_text($text);
 		$renderer->render();
-		$result = $renderer->get_result();
 
-		unset($renderer->text);
-
-		return $result;
-	}
-
-	/**
-	* Hash function for latex text
-	*
-	* @param	string $text	text
-	* @return	string			hash
-	*/
-	public static function hash($text)
-	{
-		return md5($text);
+		return $renderer->get_result();
 	}
 
 	/**
@@ -123,6 +116,11 @@ abstract class phpbb_latex_bbcode
 	*/
 	public function __construct()
 	{
+		if (!$this->is_supported())
+		{
+			trigger_error('LATEX_METHOD_NOT_SUPPORTED', E_USER_ERROR);
+		}
+
 		// Setup path for reading.
 		$this->setup_store_path();
 	}
@@ -140,7 +138,20 @@ abstract class phpbb_latex_bbcode
 	*
 	* @return	bool		false if unsupported
 	*/
-	abstract public static function is_supported();
+	abstract public function is_supported();
+
+	/**
+	* Sets the text attribute and generates hash
+	*
+	* @param $text		string
+	*
+	* @return	void
+	*/
+	public function set_text($text)
+	{
+		$this->text = $text;
+		$this->hash = hash(self::$hash_method, $text);
+	}
 
 	/**
 	* Builds and returns the final result
@@ -150,20 +161,10 @@ abstract class phpbb_latex_bbcode
 	*/
 	public function get_result()
 	{
-		$src = $this->get_image_location();
+		$src = $this->image_store_path . $this->hash . '.' . $this->image_extension;
 		$alt = $this->text;
 
 		return '<img src="' . $src . '" alt="' . $alt . '" style="vertical-align: middle;" />';
-	}
-
-	/**
-	* Get local image location
-	*
-	* @return	string		image location
-	*/
-	protected function get_image_location()
-	{
-		return $this->image_store_path . '/' . $this->hash . '.' . $this->image_extension;
 	}
 
 	/**
@@ -180,14 +181,21 @@ abstract class phpbb_latex_bbcode
 			if (!isset($config['latex_images_path']))
 			{
 				// No path specified
-				trigger_error('LATEX_NOT_INSTALLED');
+				trigger_error('LATEX_NOT_INSTALLED', E_USER_ERROR);
 			}
 
 			$this->image_store_path = $phpbb_root_path . $config['latex_images_path'];
+
+			// Add / if necessary
+			if (substr($this->image_store_path, -1) !== '/')
+			{
+				$this->image_store_path .= '/';
+			}
+
 			if (!is_readable($this->image_store_path))
 			{
 				// Path specified but not readable by php/webserver
-				trigger_error('LATEX_IMAGES_PATH_NOT_READABLE');
+				trigger_error('LATEX_IMAGES_PATH_NOT_READABLE', E_USER_ERROR);
 			}
 		}
 
@@ -195,7 +203,7 @@ abstract class phpbb_latex_bbcode
 		if ($check_writeable && !is_writable($this->image_store_path))
 		{
 			// Path not writable
-			trigger_error('LATEX_IMAGES_PATH_NOT_WRITABLE');
+			trigger_error('LATEX_IMAGES_PATH_NOT_WRITABLE', E_USER_ERROR);
 		}
 	}
 
@@ -210,7 +218,7 @@ abstract class phpbb_latex_bbcode
 
 		while (($entry = readdir($handle)) !== false)
 		{
-			$file = $this->image_store_path . '/' . $entry;
+			$file = $this->image_store_path . $entry;
 
 			// Files only. Ignore hidden files.
 			if (!is_file($file) || strpos($entry, '.') === 0)

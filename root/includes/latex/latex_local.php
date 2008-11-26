@@ -75,11 +75,9 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
-		$this->hash = self::hash($this->text);
-
-		if (!file_exists($this->get_image_location()))
+		if (!file_exists($this->image_store_path . $this->hash . '.' . $this->image_extension))
 		{
-			// Setup image storage path and temporary path
+			// Setup image storage path and temporary path.
 			$this->setup_store_path(true);
 			$this->setup_tmp_path();
 
@@ -92,9 +90,9 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
-	* @return	bool
+	* @return	bool		false if unsupported
 	*/
-	public static function is_supported()
+	public function is_supported()
 	{
 		$functions = array('exec', 'copy', 'fopen', 'fwrite');
 		foreach ($functions as $function)
@@ -115,19 +113,64 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	protected function create_image()
 	{
+		// @DEBUG
+		$this->latex_location = exec('which latex');
+		$this->dvips_location = exec('which dvips');
+		$this->convert_location = exec('which convert');
+
+		$status = true;
+
 		$cwd = getcwd();
 		chdir($this->tmp_path);
 
-		// Create image in temporary folder
-		$status = $this->create_image_helper();
+		// Write text to temporary .tex file
+		$fp = fopen($this->hash . '.tex', 'wb');
+		$status = fwrite($fp, $this->wrap_text($this->text));
+		fclose($fp);
+
+		$cmds = array(
+			// Convert .tex to .dvi
+			array(
+				'require'	=> $this->hash . '.tex',
+				'exec'		=> $this->latex_location . ' --interaction=nonstopmode ' . $this->hash . '.tex',
+			),
+			// Convert .dvi to .ps
+			array(
+				'require'	=> $this->hash . '.dvi',
+				'exec'		=> $this->dvips_location . ' -E ' . $this->hash . '.dvi' . ' -o ' . $this->hash . '.ps',
+			),
+			// Convert .ps to image
+			array(
+				'require'	=> $this->hash . '.ps',
+				'exec'		=> $this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF" ' . $this->hash . '.ps ' . $this->hash . '.' . $this->image_extension,
+			),
+			// Check if image exists
+			array(
+				'require'	=> $this->hash . '.' . $this->image_extension,
+			),
+		);
+
+		foreach ($cmds as $cmd)
+		{
+			if (!file_exists($cmd['require']))
+			{
+				$status = false;
+				break;
+			}
+
+			if (!empty($cmd['exec']))
+			{
+				exec($cmd['exec']);
+			}
+		}
 
 		chdir($cwd);
 
-		// Copy image to images path
+		// Copy image to storage path
 		if ($status)
 		{
 			$src = $this->tmp_path . $this->hash . '.' . $this->image_extension;
-			$dst = $this->get_image_location();
+			$dst = $this->image_store_path . $this->hash . '.' . $this->image_extension;
 
 			if (rename($src, $dst) === false)
 			{
@@ -139,55 +182,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		$this->clean_tmp_path();
 
 		return $status;
-	}
-
-	/**
-	* Helper method for $this->create_image()
-	*
-	* @return	bool		false on error
-	*/
-	private function create_image_helper()
-	{
-		// Write .tex
-		$fp = fopen($this->hash . '.tex', 'wb');
-		$status = fwrite($fp, $this->wrap_text($this->text));
-		fclose($fp);
-
-		if (!file_exists($this->hash . '.tex'))
-		{
-			return false;
-		}
-
-		// @DEBUG
-		$this->latex_location = exec('which latex');
-		$this->dvips_location = exec('which dvips');
-		$this->convert_location = exec('which convert');
-
-		// Convert .tex to .dvi
-		exec($this->latex_location . ' --interaction=nonstopmode ' . $this->hash . '.tex');
-
-		if (!file_exists($this->hash . '.dvi'))
-		{
-			return false;
-		}
-
-		// Convert .dvi to .ps
-		exec($this->dvips_location . ' -E ' . $this->hash . '.dvi' . ' -o ' . $this->hash . '.ps');
-
-		if (!file_exists($this->hash . '.ps'))
-		{
-			return false;
-		}
-
-		// Convert .ps to image
-		exec($this->convert_location . ' -density ' . $this->density . ' -trim -transparent "#FFFFFF" ' . $this->hash . '.ps ' . $this->hash . '.' . $this->image_extension);
-
-		if (!file_exists($this->hash . '.' . $this->image_extension))
-		{
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -237,7 +231,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	{
 		foreach (array('tex', 'dvi', 'ps', $this->image_extension, 'log', 'aux') as $ext)
 		{
-			$file = $this->tmp_path . '/' . $this->hash . '.' . $ext;
+			$file = $this->tmp_path . $this->hash . '.' . $ext;
 
 			if (file_exists($file))
 			{

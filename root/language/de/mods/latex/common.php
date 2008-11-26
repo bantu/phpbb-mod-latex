@@ -43,6 +43,7 @@ $lang = array_merge($lang, array(
 	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'Im angegebenen Pfad für LaTeX-Grafiken kann nicht gelesen werden.',
 	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'Der angegebene Pfad für LaTeX-Grafiken ist nicht beschreibbar.',
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'Die konfigurierte LaTeX-Methode ist nicht verfügbar oder nicht installiert.',
+	'LATEX_METHOD_NOT_SUPPORTED'		=> 'Die konfigurierte LaTeX-Methode wird von der aktuellen PHP-Konfiguration nicht unterstützt.',
 	'LATEX_NOT_INSTALLED'				=> 'LaTeX ist nicht vollständig oder nicht korrekt installiert.',
 ));
 

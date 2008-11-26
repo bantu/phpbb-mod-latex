@@ -67,8 +67,6 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
-		$this->hash = self::hash($this->text);
-
 		if ($this->guess_image_location())
 		{
 			// No need to do anything.
@@ -87,11 +85,11 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	* Method that tells us whether the current 
 	* php setup supports this latex method or not 
 	*
-	* @return	bool
+	* @return	bool		false if unsupported
 	*/
-	public static function is_supported()
+	public function is_supported()
 	{
-		if ((@ini_get('allow_url_fopen') != '1' && strtolower(@ini_get('allow_url_fopen')) !== 'on'))
+		if (!(@ini_get('allow_url_fopen') == '1' || strtolower(@ini_get('allow_url_fopen')) === 'on'))
 		{
 			return false;
 		}
@@ -134,7 +132,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 
 			$this->image_extension = $this->supported_formats[$mime];
 
-			$fp = fopen($this->get_image_location(), 'wb');
+			$fp = fopen($this->image_store_path . $this->hash . '.' . $this->image_extension, 'wb');
 			fwrite($fp, $file);
 			fclose($fp);
 
@@ -151,19 +149,15 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	*/
 	protected function guess_image_location()
 	{
-		$ext = $this->image_extension;
-
 		foreach ($this->supported_formats as $extension)
 		{
-			$this->image_extension = $extension;
-
-			if (file_exists($this->get_image_location()))
+			if (file_exists($this->image_store_path . $this->hash . '.' . $extension))
 			{
+				$this->image_extension = $extension;
+
 				return true;
 			}
 		}
-
-		$this->image_extension = $ext;
 
 		return false;
 	}

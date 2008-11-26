@@ -43,6 +43,7 @@ $lang = array_merge($lang, array(
 	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The specified path for LaTeX images is not readable.',
 	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The specified path for LaTeX images is not writeable.',
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'The specified LaTeX method is not installed or is missing.',
+	'LATEX_METHOD_NOT_SUPPORTED'		=> 'The specified LaTeX method is not supported by your PHP setup.',
 	'LATEX_NOT_INSTALLED'				=> 'LaTeX BBcode support is not properly installed.',
 ));
 
