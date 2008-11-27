@@ -40,6 +40,8 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
+	'LATEX_BBCODE_HELPLINE'				=> 'LaTeX-Formel: [%s]LaTeX-Formel[%s]',
+
 	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'Im angegebenen Pfad für LaTeX-Grafiken kann nicht gelesen werden.',
 	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'Der angegebene Pfad für LaTeX-Grafiken ist nicht beschreibbar.',
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'Die konfigurierte LaTeX-Methode ist nicht verfügbar oder nicht installiert.',

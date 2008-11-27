@@ -40,6 +40,11 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
+	'ACP_LATEX_BBCODE'					=> 'Latex BBcode',
+	'ACP_LATEX_BBCODE_EXPLAIN'			=> 'Latex BBcode EXPLAIN',
+
+	'LATEX_BBCODE_HELPLINE'				=> 'LaTeX formula: [%s]LaTeX formula[%s]',
+
 	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The specified path for LaTeX images is not readable.',
 	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The specified path for LaTeX images is not writeable.',
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'The specified LaTeX method is not installed or is missing.',
