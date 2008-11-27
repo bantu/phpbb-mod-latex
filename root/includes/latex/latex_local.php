@@ -175,7 +175,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 			if (rename($src, $dst) === false)
 			{
 				copy($src, $dst);
-				unlink($src);
 			}
 		}
 
