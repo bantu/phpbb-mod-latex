@@ -3,7 +3,7 @@
 *
 * @package phpbb_latex_bbcode
 * @version $Id$
-* @copyright (C) 2003 Benjamin Zeiss <zeiss@math.uni-goettingen.de>
+* @copyright (c) 2003 Benjamin Zeiss <zeiss@math.uni-goettingen.de>
 * @copyright (c) 2008 Andreas Fischer <bantu@phpbb.com>
 * @license http://opensource.org/licenses/gpl-license.php GNU Public License
 *
@@ -175,6 +175,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 			if (rename($src, $dst) === false)
 			{
 				copy($src, $dst);
+				unlink($src);
 			}
 		}
 

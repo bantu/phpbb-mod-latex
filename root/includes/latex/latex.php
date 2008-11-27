@@ -25,6 +25,7 @@ abstract class phpbb_latex_bbcode
 {
 	/**
 	* Hash method used to hash text
+	* @link	hash()
 	*
 	* @var	string
 	*/
