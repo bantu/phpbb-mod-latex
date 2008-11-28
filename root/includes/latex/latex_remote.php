@@ -67,6 +67,9 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
+		// Setup store path for reading
+		$this->setup_store_path();
+
 		if ($this->guess_image_location())
 		{
 			// No need to do anything.

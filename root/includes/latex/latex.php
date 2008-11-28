@@ -113,20 +113,6 @@ abstract class phpbb_latex_bbcode
 	}
 
 	/**
-	* Constructor
-	*/
-	public function __construct()
-	{
-		if (!$this->is_supported())
-		{
-			trigger_error('LATEX_METHOD_NOT_SUPPORTED', E_USER_ERROR);
-		}
-
-		// Setup path for reading.
-		$this->setup_store_path();
-	}
-
-	/**
 	* Main render function
 	*
 	* @return	void
@@ -144,8 +130,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Sets the text attribute and generates hash
 	*
-	* @param $text		string
-	*
+	* @param	string	$text
 	* @return	void
 	*/
 	public function set_text($text)
@@ -211,7 +196,7 @@ abstract class phpbb_latex_bbcode
 	/**
 	* Deletes all files in $this->image_store_path
 	*
-	* @return void
+	* @return	 void
 	*/
 	public function purge_image_cache()
 	{

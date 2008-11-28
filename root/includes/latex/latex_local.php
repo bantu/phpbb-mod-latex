@@ -21,7 +21,7 @@
 * Additional Requirements:
 *	PHP function exec() enabled
 *	LaTeX binaries installed (latex, dvips)
-*	ImageMagick installed (convert, identify)
+*	ImageMagick installed (convert)
 *
 */
 
@@ -55,6 +55,27 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	protected $tmp_path;
 
 	/**
+	* Location of latex binary (latex)
+	*
+	* @var	string
+	*/
+	protected $latex_location;
+
+	/**
+	* Location of dvips binary (latex)
+	*
+	* @var	string
+	*/
+	protected $dvips_location;
+
+	/**
+	* Location of convert binary (imagemagick)
+	*
+	* @var	string
+	*/
+	protected $convert_location;
+
+	/**
 	* Font size (used by latex)
 	*
 	* @var	int
@@ -75,6 +96,9 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
+		// Setup store path for reading
+		$this->setup_store_path();
+
 		if (!file_exists($this->image_store_path . $this->hash . '.' . $this->image_extension))
 		{
 			// Setup image storage path and temporary path.
@@ -113,19 +137,14 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	protected function create_image()
 	{
-		// @DEBUG
-		$this->latex_location = exec('which latex');
-		$this->dvips_location = exec('which dvips');
-		$this->convert_location = exec('which convert');
-
-		$status = true;
+		$this->detect_binaries();
 
 		$cwd = getcwd();
 		chdir($this->tmp_path);
 
 		// Write text to temporary .tex file
 		$fp = fopen($this->hash . '.tex', 'wb');
-		$status = fwrite($fp, $this->wrap_text($this->text));
+		fwrite($fp, $this->wrap_text($this->text));
 		fclose($fp);
 
 		$cmds = array(
@@ -150,6 +169,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 			),
 		);
 
+		$status = true;
 		foreach ($cmds as $cmd)
 		{
 			if (!file_exists($cmd['require']))
@@ -164,6 +184,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 			}
 		}
 
+		unset($cmds);
 		chdir($cwd);
 
 		// Copy image to storage path
@@ -187,7 +208,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	/**
 	* Deletes all temporary files in $this->images_path
 	*
-	* @return void
+	* @return	string
 	*/
 	protected function wrap_text($text) {
 		$out = '';
@@ -225,7 +246,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	/**
 	* Deletes all temporary files $this->tmp_path
 	*
-	* @return void
+	* @return	void
 	*/
 	protected function clean_tmp_path()
 	{
@@ -238,6 +259,29 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 				unlink($file);
 			}
 		}
+	}
+
+	/**
+	* Autodetects required binaries (unix systems only)
+	*
+	* @return	bool
+	*/
+	protected function detect_binaries()
+	{
+		foreach (array('latex', 'dvips', 'convert') as $binary)
+		{
+			$guess = exec("which $binary");
+
+			if (!file_exists($guess))
+			{
+				return false;
+			}
+
+			$property = $binary . '_location';
+			$this->$property = $guess;
+		}
+
+		return true;
 	}
 }
 
