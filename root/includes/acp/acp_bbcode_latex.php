@@ -21,13 +21,16 @@ if (!defined('IN_PHPBB'))
 */
 class acp_bbcode_latex
 {
-	var $u_action;
-	var $new_config = array();
+	public $u_action;
+	protected $new_config = array();
+	protected $latex_methods = array();
 
 	function main($id, $mode)
 	{
 		global $db, $user, $auth, $cache, $template;
 		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
+
+		require($phpbb_root_path . 'includes/latex/latex.' . $phpEx);
 
 		$user->add_lang('acp/posting');
 		$user->add_lang('mods/latex/common');
@@ -36,6 +39,47 @@ class acp_bbcode_latex
 
 		$form_key = 'acp_bbcode_latex';
 		add_form_key($form_key);
+
+		$this->latex_methods = $this->get_methods();
+
+		$bbcode_installed = $bbcode_tag = false;
+		if (!empty($config['latex_bbcode_tag']))
+		{
+			$bbcode_tag = $config['latex_bbcode_tag'];
+
+			if ($this->bbcode_exists($bbcode_tag))
+			{
+				$bbcode_installed = true;
+			}
+		}
+
+		$renderer = null;
+		$method_supported = $method = false;
+		if (!empty($config['latex_method']))
+		{
+			$method = $config['latex_method'];
+
+			if (isset($this->latex_methods[$method]) && $this->latex_methods[$method]['supported'])
+			{
+				$method_supported = true;
+				$class = 'phpbb_latex_bbcode_' . $method;
+
+				if (!class_exists($class))
+				{
+					$file = $phpbb_root_path . 'includes/latex/latex_' . $method . '.' . $phpEx;
+
+					if (file_exists($file))
+					{
+						include($file);
+					}
+				}
+
+				if (class_exists($class))
+				{
+					$renderer = new $class();
+				}
+			}
+		}
 
 		// Init configuration values
 		$config_defaults = array(
@@ -64,8 +108,11 @@ class acp_bbcode_latex
 				$display_vars = array(
 					'title'	=> 'ACP_LATEX_BBCODE',
 					'vars'	=> array(
-						'legend1'			=> 'ACP_SETTINGS',
-						'latex_images_path'		=> array('lang' => 'UPLOAD_DIR', 'validate' => 'wpath', 'type' => 'text:25:100', 'explain' => true),
+						'legend1'				=> 'ACP_LATEX_SETTINGS',
+						'latex_images_path'		=> array('lang' => 'IMAGES_DIR', 'validate' => 'wpath', 'type' => 'text:25:100', 'explain' => true),
+
+						'legend2'				=> 'ACP_LATEX_METHOD_SETTINGS',
+						'latex_method'			=> array('lang' => 'LATEX_METHOD', 'validate' => 'string', 'type' => 'custom', 'method' => "select_methods", 'explain' => true),
 				));
 			break;
 
@@ -140,8 +187,8 @@ class acp_bbcode_latex
 			{
 				$template->assign_block_vars('options', array(
 					'S_LEGEND'		=> true,
-					'LEGEND'		=> (isset($user->lang[$vars])) ? $user->lang[$vars] : $vars)
-				);
+					'LEGEND'		=> (isset($user->lang[$vars])) ? $user->lang[$vars] : $vars,
+				));
 
 				continue;
 			}
@@ -276,31 +323,73 @@ class acp_bbcode_latex
 	{
 		global $phpbb_root_path, $phpEx;
 
+		$path = $phpbb_root_path . 'includes/latex/';
 		$methods = array();
 
-		$str_match = 'latex';
-		$neg_match = $str_match . '.' . $phpEx;
-		$len_match = strlen($str_match) + 1;
-		$len_phpex = strlen($phpEx) + 1;
+		$str_match = 'latex_';
+		$len_match = strlen($str_match);
+		$len_phpex = strlen('.' . $phpEx);
 
-		$handle = opendir($phpbb_root_path . 'includes/latex');
+		$handle = opendir($path);
 		while (($entry = readdir($handle)) !== false)
 		{
-			if ($entry == $neg_match)
-			{
-				continue;
-			}
-
+			// Make sure $entry begins with $str_match
 			if (strpos($entry, $str_match) !== 0)
 			{
 				continue;
 			}
 
-			$methods[] = substr($entry, $len_match, -$len_phpex);
+			// latex_$method.$phpEx
+			$method = substr($entry, $len_match, -$len_phpex);
+			if (empty($method))
+			{
+				continue;
+			}
+
+			$file = $path . $entry;
+			if (!file_exists($file))
+			{
+				continue;
+			}
+
+			$class = 'phpbb_latex_bbcode_' . $method;
+			if (!class_exists($class))
+			{
+				include($file);
+			}
+
+			// Not the best way ...
+			$obj = new $class();
+
+			$methods[$method] = array(
+				'name'		=> ucfirst($method),
+				'supported' => $obj->is_supported(),
+			);
+
+			unset($obj);
 		}
 		closedir($handle);
 
 		return $methods;
+	}
+
+	/**
+	* Radio button for available Latex methods
+	*/
+	function select_methods($value, $key)
+	{
+		$html = '';
+		$name = 'config[latex_method]';
+
+		foreach ($this->latex_methods as $method => $details)
+		{
+			$selected = ($details['supported'] && $value == $method) ? ' checked="checked"' : '';
+			$disabled = (!$details['supported']) ? ' disabled="disabled"' : '';
+
+			$html .= '<label><input type="radio" name="' . $name . '" value="' . $method . '"' . $selected . $disabled . ' class="radio" /> ' . $details['name'] . '</label>';
+		}
+		
+		return $html;
 	}
 }
 
