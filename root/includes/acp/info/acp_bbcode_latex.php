@@ -20,7 +20,7 @@ class acp_bbcode_latex_info
 			'title'		=> 'ACP_BBCODE_LATEX',
 			'version'	=> '1.0.0',
 			'modes'		=> array(
-				'settings'		=> array('title' => 'ACP_BBCODE_LATEX', 'auth' => 'acl_a_bbcode', 'cat' => array('ACP_MESSAGES')),
+				'general'		=> array('title' => 'ACP_BBCODE_LATEX', 'auth' => 'acl_a_bbcode', 'cat' => array('ACP_MESSAGES')),
 			),
 		);
 	}

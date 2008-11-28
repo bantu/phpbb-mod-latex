@@ -32,16 +32,36 @@ class acp_bbcode_latex
 
 		require($phpbb_root_path . 'includes/latex/latex.' . $phpEx);
 
+		// Setup language 
 		$user->add_lang('acp/posting');
 		$user->add_lang('mods/latex/common');
 
+		// Submit button pushed?
 		$submit = (isset($_POST['submit'])) ? true : false;
 
+		// Add form key
 		$form_key = 'acp_bbcode_latex';
 		add_form_key($form_key);
 
+		// Init configuration values if this is the first time ...
+		$config_defaults = array(
+			'latex_bbcode_tag'			=> 'LaTeX',
+			'latex_method'				=> '',
+			'latex_images_path'			=> 'images/latex',
+		);
+
+		foreach ($config_defaults as $config_value => $default)
+		{
+			if (!isset($config[$config_value]))
+			{
+				set_config($config_value, $default);
+			}
+		}
+
+		// Get supported latex methods
 		$this->latex_methods = $this->get_methods();
 
+		// Check if a Latex BBcode is installed
 		$bbcode_installed = $bbcode_tag = false;
 		if (!empty($config['latex_bbcode_tag']))
 		{
@@ -53,6 +73,7 @@ class acp_bbcode_latex
 			}
 		}
 
+		// Check if Latex method is supported
 		$renderer = null;
 		$method_supported = $method = false;
 		if (!empty($config['latex_method']))
@@ -81,44 +102,40 @@ class acp_bbcode_latex
 			}
 		}
 
-		// Init configuration values
-		$config_defaults = array(
-			'latex_bbcode_tag'			=> 'LaTeX',
-			'latex_method'				=> 'remote',
-			'latex_images_path'			=> 'images/latex',
+		// Variables for page output
+		$display_vars = array(
+			'title'	=> 'ACP_LATEX_BBCODE',
+			'vars'	=> array(
+				'legend1' => 'ACP_LATEX_SETTINGS',
+				'latex_images_path' => array(
+					'lang' => 'IMAGES_DIR',
+					'validate' => 'wpath',
+					'type' => 'text:25:100',
+					'explain' => true,
+				),
+
+				'legend2' => 'ACP_LATEX_METHOD_SETTINGS',
+				'latex_method' => array(
+					'lang' => 'LATEX_METHOD',
+					'validate' => 'string',
+					'type' => 'custom',
+					'method' => 'select_methods',
+					'explain' => true,
+				),
+			),
 		);
 
-		foreach ($config_defaults as $config_value => $default)
+		if (!$bbcode_installed)
 		{
-			if (!isset($config[$config_value]))
-			{
-				set_config($config_value, $default);
-			}
-		}
-
-		switch ($mode)
-		{
-			case 'install':
-				$bbcode_tag = request_var('bbcode_tag', 'LaTeX');
-
-				$this->insert_bbcode($bbcode_tag);
-			break;
-
-			case 'settings':
-				$display_vars = array(
-					'title'	=> 'ACP_LATEX_BBCODE',
-					'vars'	=> array(
-						'legend1'				=> 'ACP_LATEX_SETTINGS',
-						'latex_images_path'		=> array('lang' => 'IMAGES_DIR', 'validate' => 'wpath', 'type' => 'text:25:100', 'explain' => true),
-
-						'legend2'				=> 'ACP_LATEX_METHOD_SETTINGS',
-						'latex_method'			=> array('lang' => 'LATEX_METHOD', 'validate' => 'string', 'type' => 'custom', 'method' => "select_methods", 'explain' => true),
-				));
-			break;
-
-			default:
-				trigger_error('NO_MODE', E_USER_ERROR);
-			break;
+			$display_vars['vars'] += array(
+				'legend3' => 'ACP_LATEX_INSTALL',
+				'latex_bbcode_tag' => array(
+					'lang' => 'BBCODE_NAME',
+					'validate' => 'string',
+					'type' => 'text:10:10',
+					'explain' => true,
+				),
+			);
 		}
 
 		$this->new_config = $config;
@@ -128,15 +145,42 @@ class acp_bbcode_latex
 		// We validate the complete config if whished
 		validate_config_vars($display_vars['vars'], $cfg_array, $error);
 
-		if ($submit && !check_form_key($form_key))
+		// Some additional error checks
+		if ($submit)
 		{
-			$error[] = $user->lang['FORM_INVALID'];
+			// Form key check
+			if (!check_form_key($form_key))
+			{
+				$error[] = $user->lang['FORM_INVALID'];
+			}
+
+			// Moan if newly select method is unsupported
+			if (!empty($this->new_config['latex_method']))
+			{
+				$new_method = $this->new_config['latex_method'];
+
+				if (!isset($this->latex_methods[$new_method]) || !$this->latex_methods[$new_method]['supported'])
+				{
+					$error[] = $user->lang['LATEX_METHOD_NOT_SUPPORTED'];
+				}
+			}
 		}
 
 		// Do not write values if there is an error
 		if (sizeof($error))
 		{
 			$submit = false;
+		}
+
+		// Generally show a warning if BBcode is not installed
+		if (!$bbcode_installed)
+		{
+			$error[] = $user->lang['LATEX_BBCODE_NOT_INSTALLED'];
+		}
+		else if (!$method_supported)
+		{
+			// Show warning if bbcode is installed but method unsupported.
+			$error[] = $user->lang['LATEX_METHOD_NOT_SUPPORTED'];
 		}
 
 		// We go through the display_vars to make sure no one is trying to set variables he/she is not allowed to...
@@ -151,6 +195,12 @@ class acp_bbcode_latex
 
 			if ($submit)
 			{
+				// Install BBcode
+				if ($config_name == 'latex_bbcode_tag')
+				{
+					$this->insert_bbcode($config_value);
+				}
+
 				set_config($config_name, $config_value);
 			}
 		}
@@ -204,14 +254,14 @@ class acp_bbcode_latex
 			{
 				$l_explain = (isset($user->lang[$vars['lang'] . '_EXPLAIN'])) ? $user->lang[$vars['lang'] . '_EXPLAIN'] : '';
 			}
-			
+
 			$content = build_cfg_template($type, $config_key, $this->new_config, $config_key, $vars);
-			
+
 			if (empty($content))
 			{
 				continue;
 			}
-			
+
 			$template->assign_block_vars('options', array(
 				'KEY'			=> $config_key,
 				'TITLE'			=> (isset($user->lang[$vars['lang']])) ? $user->lang[$vars['lang']] : $vars['lang'],

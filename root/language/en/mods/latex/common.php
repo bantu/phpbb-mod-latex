@@ -40,16 +40,17 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
-	'ACP_LATEX_BBCODE'					=> 'Latex BBcode',
+	'ACP_LATEX_BBCODE'					=> 'LaTeX BBcode',
 	'ACP_LATEX_BBCODE_EXPLAIN'			=> 'Latex BBcode EXPLAIN',
 
-	'LATEX_BBCODE_HELPLINE'				=> 'LaTeX formula: [%s]LaTeX formula[%s]',
+	'LATEX_BBCODE_HELPLINE'				=> 'Latex formula: [%1$s]Latex formula[%1$s]',
+	'LATEX_BBCODE_NOT_INSTALLED'		=> 'Latex BBcode is currently not installed.',
 
-	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The specified path for LaTeX images is not readable.',
-	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The specified path for LaTeX images is not writeable.',
-	'LATEX_METHOD_NOT_INSTALLED'		=> 'The specified LaTeX method is not installed or is missing.',
-	'LATEX_METHOD_NOT_SUPPORTED'		=> 'The specified LaTeX method is not supported by your PHP setup.',
-	'LATEX_NOT_INSTALLED'				=> 'LaTeX BBcode support is not properly installed.',
+	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'The specified path for Latex images is not readable.',
+	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'The specified path for Latex images is not writeable.',
+	'LATEX_METHOD_NOT_INSTALLED'		=> 'The selected Latex method is not installed or is missing.',
+	'LATEX_METHOD_NOT_SUPPORTED'		=> 'The selected Latex method is not supported by your PHP setup.',
+	'LATEX_NOT_INSTALLED'				=> 'Latex BBcode support is not installed or is not properly configured.',
 ));
 
 ?>
