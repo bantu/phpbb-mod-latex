@@ -40,7 +40,7 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
-	'ACP_BBCODE_LATEX'			=> 'LaTeX BBcode',
+	'ACP_BBCODE_LATEX'			=> 'LaTeX-BBcode',
 ));
 
 ?>
