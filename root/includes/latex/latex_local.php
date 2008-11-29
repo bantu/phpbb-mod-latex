@@ -214,7 +214,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		$out = '';
 
 		$out .= '\documentclass[' . $this->fontsize . "pt]{article}\n";
-		$out .= "\usepackage[latin1]{inputenc}\n";
+		$out .= "\usepackage[utf8]{inputenc}\n";
 		$out .= "\usepackage{amsmath}\n";
 		$out .= "\usepackage{amsfonts}\n";
 		$out .= "\usepackage{amssymb}\n";

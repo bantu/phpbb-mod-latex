@@ -127,7 +127,8 @@ class acp_bbcode_latex
 
 		if (!$bbcode_installed)
 		{
-			$display_vars['vars'] += array(
+			// Insert BBcode installer at the top
+			$vars = array(
 				'legend3' => 'ACP_LATEX_INSTALL',
 				'latex_bbcode_tag' => array(
 					'lang' => 'BBCODE_NAME',
@@ -136,6 +137,9 @@ class acp_bbcode_latex
 					'explain' => true,
 				),
 			);
+
+			$display_vars['vars'] = array_merge($vars, $display_vars['vars']);
+			unset($vars);
 		}
 
 		$this->new_config = $config;
@@ -154,7 +158,7 @@ class acp_bbcode_latex
 				$error[] = $user->lang['FORM_INVALID'];
 			}
 
-			// Moan if newly select method is unsupported
+			// Moan if newly selected method is unsupported
 			if (!empty($this->new_config['latex_method']))
 			{
 				$new_method = $this->new_config['latex_method'];
@@ -162,6 +166,22 @@ class acp_bbcode_latex
 				if (!isset($this->latex_methods[$new_method]) || !$this->latex_methods[$new_method]['supported'])
 				{
 					$error[] = $user->lang['LATEX_METHOD_NOT_SUPPORTED'];
+				}
+			}
+
+			// Install BBcode
+			if (isset($cfg_array['latex_bbcode_tag']) && isset($display_vars['vars']['latex_bbcode_tag']))
+			{
+				$bbcode_tag = $cfg_array['latex_bbcode_tag'];
+
+				// Check if BBcode already exists.
+				if ($this->bbcode_exists($bbcode_tag))
+				{
+					$error[] = $user->lang['BBCODE_INVALID_TAG_NAME'];
+				}
+				else
+				{
+					$this->insert_bbcode($bbcode_tag);
 				}
 			}
 		}
@@ -195,12 +215,6 @@ class acp_bbcode_latex
 
 			if ($submit)
 			{
-				// Install BBcode
-				if ($config_name == 'latex_bbcode_tag')
-				{
-					$this->insert_bbcode($config_value);
-				}
-
 				set_config($config_name, $config_value);
 			}
 		}
@@ -281,12 +295,6 @@ class acp_bbcode_latex
 	{
 		global $db, $user;
 
-		// Check if BBcode already exists.
-		if ($this->bbcode_exists($bbcode_tag))
-		{
-			trigger_error('BBCODE_INVALID_TAG_NAME', E_USER_WARNING);
-		}
-
 		// Get max_bbcode_id - borrowed from acp_bbcodes
 		$sql = 'SELECT MAX(bbcode_id) as max_bbcode_id
 			FROM ' . BBCODES_TABLE;
@@ -349,16 +357,30 @@ class acp_bbcode_latex
 	*/
 	function bbcode_exists($bbcode_tag)
 	{
+		static $hard_coded;
 		global $db;
+
+		$lower = strtolower($bbcode_tag);
 
 		$sql = 'SELECT 1 as test
 			FROM ' . BBCODES_TABLE . "
-			WHERE LOWER(bbcode_tag) = '" . $db->sql_escape(strtolower($bbcode_tag)) . "'";
+			WHERE LOWER(bbcode_tag) = '" . $db->sql_escape($lower) . "'";
 		$result = $db->sql_query($sql);
 		$info = $db->sql_fetchrow($result);
 		$db->sql_freeresult($result);
 
 		if ($info['test'] === '1')
+		{
+			return true;
+		}
+
+		// Make sure the user didn't pick a "bad" name for the BBCode tag. - From acp_bbcodes.php
+		if (!is_array($hard_coded))
+		{
+			$hard_coded = array('code', 'quote', 'quote=', 'attachment', 'attachment=', 'b', 'i', 'url', 'url=', 'img', 'size', 'size=', 'color', 'color=', 'u', 'list', 'list=', 'email', 'email=', 'flash', 'flash=');
+		}
+
+		if (in_array($lower, $hard_coded))
 		{
 			return true;
 		}
