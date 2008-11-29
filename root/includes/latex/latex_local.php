@@ -23,6 +23,9 @@
 *	LaTeX binaries installed (latex, dvips)
 *	ImageMagick installed (convert)
 *
+* @TODO:
+*	Support for systems not supporting 'which'
+*
 */
 
 /**

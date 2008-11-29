@@ -69,7 +69,7 @@ abstract class phpbb_latex_bbcode
 		global $config, $phpbb_root_path, $phpEx, $user;
 
 		// Setup language here ...
-		$user->add_lang('mods/latex/common');
+		$user->add_lang('mods/latex');
 
 		if (!isset($config['latex_method']))
 		{

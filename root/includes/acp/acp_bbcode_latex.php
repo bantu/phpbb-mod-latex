@@ -48,8 +48,7 @@ class acp_bbcode_latex
 		require($phpbb_root_path . 'includes/latex/latex.' . $phpEx);
 
 		// Setup language 
-		$user->add_lang('acp/posting');
-		$user->add_lang('mods/latex/common');
+		$user->add_lang('acp/posting', 'mods/latex');
 
 		// Submit button pushed?
 		$submit = (isset($_POST['submit'])) ? true : false;
