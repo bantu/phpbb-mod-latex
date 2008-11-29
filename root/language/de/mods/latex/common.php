@@ -40,12 +40,30 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, array(
-	'LATEX_BBCODE_HELPLINE'				=> 'LaTeX-Formel: [%1$s]LaTeX-Formel[%1$s]',
+	'ACP_LATEX_BBCODE'					=> 'LaTeX BBcode',
+	'ACP_LATEX_BBCODE_EXPLAIN'			=> 'Hier kannst du Latex-BBcode installieren und konfigurieren. Um den BBcode zu entfernen, entferne ihn wie einen herkömlichen benutzerdefinierten BBcode.',
+
+	'ACP_LATEX_INSTALL'					=> 'Latex BBcode &ndash; Installation',
+	'ACP_LATEX_SETTINGS'				=> 'Latex-Einstellungen',
+
+	'BBCODE_NAME'						=> 'BBcode-Name',
+	'BBCODE_NAME_EXPLAIN'				=> 'Hier kannst du den BBcode-Namen angeben, unter dem Latex installiert werden soll.',
+	
+	'IMAGES_DIR'						=> 'Speicherpfad für Grafiken',
+	'IMAGES_DIR_EXPLAIN'				=> 'Der Pfad von deinem phpBB-Hauptverzeichnis aus, in dem die Grafiken gespeichert werden sollen (z. B. <samp>images/latex</samp>).',
+
+	'LATEX_BBCODE_HELPLINE'				=> 'Latex-Formel: [%1$s]Latex-Formel[%1$s]',
+	'LATEX_BBCODE_NOT_INSTALLED'		=> 'Derzeit ist kein Latex-BBcode installiert.',
 
 	'LATEX_IMAGES_PATH_NOT_READABLE'	=> 'Im angegebenen Pfad für LaTeX-Grafiken kann nicht gelesen werden.',
 	'LATEX_IMAGES_PATH_NOT_WRITABLE'	=> 'Der angegebene Pfad für LaTeX-Grafiken ist nicht beschreibbar.',
+
+	'LATEX_METHOD'						=> 'Methode',
+	'LATEX_METHOD_EXPLAIN'				=> 'Wähle hier die gewünschte Methode, die verwendet werden soll um Latex-Grafiken zu erzeugen. Radio-Buttons können nichtauswählbar sein, wenn deine PHP-Konfiguration diese Option nicht unterstützt.',
+
 	'LATEX_METHOD_NOT_INSTALLED'		=> 'Die konfigurierte LaTeX-Methode ist nicht verfügbar oder nicht installiert.',
 	'LATEX_METHOD_NOT_SUPPORTED'		=> 'Die konfigurierte LaTeX-Methode wird von der aktuellen PHP-Konfiguration nicht unterstützt.',
+
 	'LATEX_NOT_INSTALLED'				=> 'LaTeX ist nicht vollständig oder nicht korrekt installiert.',
 ));
 

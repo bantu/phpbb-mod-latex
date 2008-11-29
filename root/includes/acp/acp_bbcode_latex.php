@@ -21,11 +21,26 @@ if (!defined('IN_PHPBB'))
 */
 class acp_bbcode_latex
 {
-	public $u_action;
+	/**
+	* New config array
+	*
+	* @var	array[string]
+	*/
 	protected $new_config = array();
-	protected $latex_methods = array();
 
-	function main($id, $mode)
+	/**
+	* Array of existing latex methods
+	*
+	* @var	array[string]
+	*/
+	protected $latex_methods;
+
+	/**
+	* Main method
+	*
+	* @return	void
+	*/
+	public function main($id, $mode)
 	{
 		global $db, $user, $auth, $cache, $template;
 		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
@@ -46,7 +61,7 @@ class acp_bbcode_latex
 		// Init configuration values if this is the first time ...
 		$config_defaults = array(
 			'latex_bbcode_tag'			=> 'LaTeX',
-			'latex_method'				=> '',
+			'latex_method'				=> 'remote',
 			'latex_images_path'			=> 'images/latex',
 		);
 
@@ -58,49 +73,9 @@ class acp_bbcode_latex
 			}
 		}
 
-		// Get supported latex methods
-		$this->latex_methods = $this->get_methods();
-
-		// Check if a Latex BBcode is installed
-		$bbcode_installed = $bbcode_tag = false;
-		if (!empty($config['latex_bbcode_tag']))
-		{
-			$bbcode_tag = $config['latex_bbcode_tag'];
-
-			if ($this->bbcode_exists($bbcode_tag))
-			{
-				$bbcode_installed = true;
-			}
-		}
-
-		// Check if Latex method is supported
-		$renderer = null;
-		$method_supported = $method = false;
-		if ($bbcode_installed && !empty($config['latex_method']))
-		{
-			$method = $config['latex_method'];
-
-			if (isset($this->latex_methods[$method]) && $this->latex_methods[$method]['supported'])
-			{
-				$method_supported = true;
-				$class = 'phpbb_latex_bbcode_' . $method;
-
-				if (!class_exists($class))
-				{
-					$file = $phpbb_root_path . 'includes/latex/latex_' . $method . '.' . $phpEx;
-
-					if (file_exists($file))
-					{
-						include($file);
-					}
-				}
-
-				if (class_exists($class))
-				{
-					$renderer = new $class();
-				}
-			}
-		}
+		// Check if a BBcode installed and method supported
+		$bbcode_installed = ($this->bbcode_exists($config['latex_bbcode_tag'])) ? true : false;
+		$method_supported = ($bbcode_installed && $this->method_supported($config['latex_method'])) ? true : false;
 
 		// Variables for page output
 		$display_vars = array(
@@ -157,29 +132,22 @@ class acp_bbcode_latex
 			}
 
 			// Moan if newly selected method is unsupported
-			if (!empty($this->new_config['latex_method']))
+			if (isset($cfg_array['latex_method']) && !$this->method_supported($cfg_array['latex_method']))
 			{
-				$new_method = $this->new_config['latex_method'];
-
-				if (!isset($this->latex_methods[$new_method]) || !$this->latex_methods[$new_method]['supported'])
-				{
-					$error[] = $user->lang['LATEX_METHOD_NOT_SUPPORTED'];
-				}
+				$error[] = $user->lang['LATEX_METHOD_NOT_SUPPORTED'];
 			}
 
 			// Install BBcode
 			if (isset($cfg_array['latex_bbcode_tag']) && isset($display_vars['vars']['latex_bbcode_tag']))
 			{
-				$bbcode_tag = $cfg_array['latex_bbcode_tag'];
-
 				// Check if BBcode already exists.
-				if ($this->bbcode_exists($bbcode_tag))
+				if ($this->bbcode_exists($cfg_array['latex_bbcode_tag']))
 				{
 					$error[] = $user->lang['BBCODE_INVALID_TAG_NAME'];
 				}
 				else
 				{
-					$this->insert_bbcode($bbcode_tag);
+					$this->insert_bbcode($cfg_array['latex_bbcode_tag']);
 				}
 			}
 		}
@@ -288,8 +256,10 @@ class acp_bbcode_latex
 
 	/**
 	* Insert LaTeX bbcode into phpBB
+	*
+	* @return	void
 	*/
-	function insert_bbcode($bbcode_tag)
+	private function insert_bbcode($bbcode_tag)
 	{
 		global $db, $user;
 
@@ -352,8 +322,10 @@ class acp_bbcode_latex
 
 	/**
 	* Checks if specified BBcode exists
+	*
+	* @return	bool
 	*/
-	function bbcode_exists($bbcode_tag)
+	private function bbcode_exists($bbcode_tag)
 	{
 		static $hard_coded;
 		global $db;
@@ -388,8 +360,10 @@ class acp_bbcode_latex
 
 	/**
 	* Get available LaTeX methods
+	*
+	* @return	array[string]
 	*/
-	function get_methods()
+	private function get_methods()
 	{
 		global $phpbb_root_path, $phpEx;
 
@@ -444,12 +418,44 @@ class acp_bbcode_latex
 	}
 
 	/**
-	* Radio button for available Latex methods
+	* Returns whether a method is supported or not
+	*
+	* @return	bool
 	*/
-	function select_methods($value, $key)
+	protected function method_supported($method)
+	{
+		if (empty($method))
+		{
+			return false;
+		}
+
+		if (!isset($this->latex_methods))
+		{
+			$this->latex_methods = $this->get_methods();
+		}
+
+		if (isset($this->latex_methods[$method]) && $this->latex_methods[$method]['supported'])
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	* Radio button for available Latex methods
+	*
+	* @return	string
+	*/
+	public function select_methods($value, $key)
 	{
 		$html = '';
 		$name = 'config[latex_method]';
+
+		if (!isset($this->latex_methods))
+		{
+			$this->latex_methods = $this->get_methods();
+		}
 
 		foreach ($this->latex_methods as $method => $details)
 		{
