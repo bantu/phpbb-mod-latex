@@ -126,6 +126,13 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 				return false;
 			}
 		}
+		// exec() is available
+
+		// @TODO: This won't work on systems not supporting 'which'
+		if (!$this->detect_binaries())
+		{
+			return false;
+		}
 
 		return true;
 	}

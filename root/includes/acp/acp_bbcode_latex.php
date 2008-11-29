@@ -76,7 +76,7 @@ class acp_bbcode_latex
 		// Check if Latex method is supported
 		$renderer = null;
 		$method_supported = $method = false;
-		if (!empty($config['latex_method']))
+		if ($bbcode_installed && !empty($config['latex_method']))
 		{
 			$method = $config['latex_method'];
 
@@ -113,8 +113,6 @@ class acp_bbcode_latex
 					'type' => 'text:25:100',
 					'explain' => true,
 				),
-
-				'legend2' => 'ACP_LATEX_METHOD_SETTINGS',
 				'latex_method' => array(
 					'lang' => 'LATEX_METHOD',
 					'validate' => 'string',
