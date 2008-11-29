@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* info_acp_bbcode_latex [English]
+* info_acp_bbcode_latex [Deutsch - Du]
 *
 * @package language
 * @version $Id$

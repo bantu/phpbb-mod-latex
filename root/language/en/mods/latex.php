@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* common [English]
+* latex [English]
 *
 * @package phpbb_latex_bbcode
 * @version $Id$
