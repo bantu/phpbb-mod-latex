@@ -96,14 +96,29 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
-		// Setup store path for reading
-		$this->setup_store_path();
+		static $read_setup;
+		static $write_setup;
+
+		$read_setup = (isset($read_setup)) ? $read_setup : false;
+		$write_setup = (isset($write_setup)) ? $write_setup : false;
+
+		if (!$read_setup)
+		{
+			// Setup store path for reading
+			$this->setup_store_path();
+		}
 
 		if (!file_exists($this->image_store_path . $this->hash . '.' . $this->image_extension))
 		{
-			// Setup image storage path and temporary path.
-			$this->setup_store_path(true);
-			$this->setup_tmp_path();
+			if (!$write_setup)
+			{
+				// Setup image storage path and temporary path.
+				$this->setup_store_path(true);
+				$this->setup_tmp_path();
+
+				// Detect required binaries
+				$this->detect_binaries();
+			}
 
 			// Create image.
 			$this->create_image();
@@ -144,8 +159,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	protected function create_image()
 	{
-		$this->detect_binaries();
-
 		$cwd = getcwd();
 		chdir($this->tmp_path);
 

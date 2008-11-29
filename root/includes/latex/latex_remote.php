@@ -45,7 +45,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 		'http://www.cyberroadie.org/cgi-bin/mathtex.cgi',
 		'http://www.problem-solving.be/cgi-bin/mathtex.cgi',
 
-		// MimeTex
+		// MimeTex (lower quality)
 		'http://mitaub.sourceforge.net/cgi-bin/mimetex.cgi',
 		'http://www.forkosh.dreamhost.com/mimetex.cgi',
 	);
@@ -67,8 +67,17 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 	*/
 	public function render()
 	{
-		// Setup store path for reading
-		$this->setup_store_path();
+		static $read_setup;
+		static $write_setup;
+
+		$read_setup = (isset($read_setup)) ? $read_setup : false;
+		$write_setup = (isset($write_setup)) ? $write_setup : false;
+
+		if (!$read_setup)
+		{
+			// Setup store path for reading
+			$this->setup_store_path();
+		}
 
 		if ($this->guess_image_location())
 		{
@@ -77,8 +86,11 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 		}
 		// Implicit else. Need to download image.
 
-		// Setup path for writing.
-		$this->setup_store_path(true);
+		if (!$write_setup)
+		{
+			// Setup path for writing
+			$this->setup_store_path(true);
+		}
 
 		// Download image.
 		$this->download_image();
