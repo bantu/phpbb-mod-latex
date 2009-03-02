@@ -11,6 +11,11 @@
 * General Requirements:
 *	PHP 5 or higher
 *
+* Known Issues:
+*	The LaTeX BBcode cannot easily be set to parse before every other BBcode (but it should)
+*		See: http://www.phpbb.com/bugs/ascraeus/40215#post133075 for details
+*		(This actually stops the MOD from being finished)
+*
 */
 
 /**

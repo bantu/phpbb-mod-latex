@@ -25,6 +25,7 @@
 *
 * @TODO:
 *	Support for systems not supporting 'which'
+*	Add basic filters to disallow usage of some latex statements
 *
 */
 
