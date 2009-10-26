@@ -21,10 +21,14 @@
 * Additional Requirements:
 *	PHP function exec() enabled
 *	LaTeX binaries installed (latex, dvips)
+*	LaTeX packages: utf8, amsmath, amsfonts, amssymb
 *	ImageMagick installed (convert)
 *
+* File paths:
+*	The script will try to automatically detect where the required binaries are.
+*	If this doesn't work for you, you can manually specify the locations below.
+*
 * @TODO:
-*	Support for systems not supporting 'which'
 *	Add basic filters to disallow usage of some latex statements
 *
 */
@@ -137,17 +141,14 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	*/
 	public function is_supported()
 	{
-		$functions = array('exec', 'copy', 'fopen', 'fwrite');
-		foreach ($functions as $function)
+		foreach (array('exec', 'copy', 'fopen', 'fwrite') as $function)
 		{
 			if (!function_exists($function) || !is_callable($function))
 			{
 				return false;
 			}
 		}
-		// exec() is available
 
-		// @TODO: This won't work on systems not supporting 'which'
 		if (!$this->detect_binaries())
 		{
 			return false;
@@ -294,15 +295,17 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	{
 		foreach (array('latex', 'dvips', 'convert') as $binary)
 		{
-			$guess = exec("which $binary");
+			$property = $binary . '_location';
 
-			if (!file_exists($guess))
+			if (empty($this->$property))
+			{
+				$this->$property = exec("which $binary");
+			}
+
+			if (!file_exists($this->$property))
 			{
 				return false;
 			}
-
-			$property = $binary . '_location';
-			$this->$property = $guess;
 		}
 
 		return true;
