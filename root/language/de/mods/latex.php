@@ -66,5 +66,3 @@ $lang = array_merge($lang, array(
 
 	'LATEX_NOT_INSTALLED'				=> 'LaTeX ist nicht vollständig oder nicht korrekt installiert.',
 ));
-
-?>

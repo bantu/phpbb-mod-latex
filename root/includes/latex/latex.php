@@ -229,5 +229,3 @@ abstract class phpbb_latex_bbcode
 		closedir($handle);
 	}
 }
-
-?>

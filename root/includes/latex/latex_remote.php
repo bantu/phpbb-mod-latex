@@ -92,7 +92,6 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 			$this->setup_store_path(true);
 		}
 
-		// Download image.
 		$this->download_image();
 	}
 
@@ -109,8 +108,7 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 			return false;
 		}
 
-		$functions = array('file_get_contents', 'fopen', 'fwrite');
-		foreach ($functions as $function)
+		foreach (array('file_get_contents', 'fopen', 'fwrite') as $function)
 		{
 			if (!function_exists($function) || !is_callable($function))
 			{
@@ -177,5 +175,3 @@ class phpbb_latex_bbcode_remote extends phpbb_latex_bbcode
 		return false;
 	}
 }
-
-?>

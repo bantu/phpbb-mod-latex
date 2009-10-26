@@ -66,5 +66,3 @@ $lang = array_merge($lang, array(
 
 	'LATEX_NOT_INSTALLED'				=> 'Latex BBcode support is not installed or is not properly configured.',
 ));
-
-?>

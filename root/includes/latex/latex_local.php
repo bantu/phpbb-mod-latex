@@ -112,7 +112,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 
 		if (!$read_setup)
 		{
-			// Setup store path for reading
 			$this->setup_store_path();
 		}
 
@@ -120,15 +119,12 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		{
 			if (!$write_setup)
 			{
-				// Setup image storage path and temporary path.
 				$this->setup_store_path(true);
 				$this->setup_tmp_path();
 
-				// Detect required binaries
 				$this->detect_binaries();
 			}
 
-			// Create image.
 			$this->create_image();
 		}
 	}
@@ -224,7 +220,6 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 			}
 		}
 
-		// Clean up temp path
 		$this->clean_tmp_path();
 
 		return $status;
@@ -311,5 +306,3 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 		return true;
 	}
 }
-
-?>

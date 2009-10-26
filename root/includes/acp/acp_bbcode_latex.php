@@ -465,5 +465,3 @@ class acp_bbcode_latex
 		return $html;
 	}
 }
-
-?>

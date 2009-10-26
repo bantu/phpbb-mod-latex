@@ -33,5 +33,3 @@ class acp_bbcode_latex_info
 	{
 	}
 }
-
-?>
