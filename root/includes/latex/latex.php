@@ -153,7 +153,7 @@ abstract class phpbb_latex_bbcode
 	public function get_result()
 	{
 		$src = $this->image_store_path . $this->hash . '.' . $this->image_extension;
-		$alt = $this->text;
+		$alt = htmlspecialchars($this->text);
 
 		return '<img src="' . $src . '" alt="' . $alt . '" style="vertical-align: middle;" />';
 	}
