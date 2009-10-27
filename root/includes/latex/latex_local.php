@@ -226,7 +226,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Deletes all temporary files in $this->images_path
+	* Wraps the entered formula into a proper tex document
 	*
 	* @return	string
 	*/
@@ -259,8 +259,16 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 
 			$this->tmp_path = $phpbb_root_path . 'cache/';
 		}
+		else if (substr($this->tmp_path, -1) !== '/')
+		{
+			// Add / if necessary
+			$this->tmp_path .= '/';
+		}
 
-		// Assume phpBB cache folder is writeable
+		if (!file_exists($this->tmp_path) || !is_dir($this->tmp_path) || !is_writable($this->tmp_path))
+		{
+			trigger_error('LATEX_NOT_INSTALLED', E_USER_ERROR);
+		}
 	}
 
 	/**
@@ -282,7 +290,7 @@ class phpbb_latex_bbcode_local extends phpbb_latex_bbcode
 	}
 
 	/**
-	* Autodetects required binaries (unix systems only)
+	* Automatically detects required binaries using 'which'
 	*
 	* @return	bool
 	*/
